@@ -120,9 +120,9 @@ func (m MarketNewsApi) GetNewsList(source string, limit int) *[]*models.Telegrap
 func (m MarketNewsApi) GetNewsList2(source string, limit int) *[]*models.Telegraph {
 	news := &[]*models.Telegraph{}
 	if source != "" {
-		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("id ,is_red desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("id desc,is_red desc").Limit(limit).Find(news)
 	} else {
-		db.Dao.Model(news).Preload("TelegraphTags").Order("id ,is_red desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Order("id desc,is_red desc").Limit(limit).Find(news)
 	}
 	for _, item := range *news {
 		tags := &[]models.Tags{}
