@@ -26,7 +26,7 @@ func (s SearchStockApi) SearchStock(pageSize int) map[string]any {
 		SetHeader("Host", "np-tjxg-g.eastmoney.com").
 		SetHeader("Origin", "https://xuangu.eastmoney.com").
 		SetHeader("Referer", "https://xuangu.eastmoney.com/").
-		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0").
+		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:145.0) Gecko/20100101 Firefox/145.0").
 		SetHeader("Content-Type", "application/json").
 		SetBody(fmt.Sprintf(`{
 				"keyWord": "%s",
