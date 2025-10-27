@@ -3,9 +3,10 @@ package data
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"go-stock/backend/logger"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 // @Author spark
@@ -31,19 +32,19 @@ func (s SearchStockApi) SearchStock(pageSize int) map[string]any {
 				"keyWord": "%s",
 				"pageSize": %d,
 				"pageNo": 1,
-				"fingerprint": "e38b5faabf9378c8238e57219f0ebc9b",
+				"fingerprint": "02efa8944b1f90fbfe050e1e695a480d",
 				"gids": [],
 				"matchWord": "",
-				"timestamp": "1751113883290349",
+				"timestamp": "%d",
 				"shareToGuba": false,
-				"requestId": "8xTWgCDAjvQ5lmvz5mDA3Ydk2AE4yoiJ1751113883290",
+				"requestId": "RMd3Y76AJI98axPvdhdbKvbBDVwLlUK61761559950168",
 				"needCorrect": true,
 				"removedConditionIdList": [],
-				"xcId": "xc0af28549ab330013ed",
+				"xcId": "xc0d61279aad33008260",
 				"ownSelectAll": false,
 				"dxInfo": [],
 				"extraCondition": ""
-				}`, s.words, pageSize)).Post(url)
+				}`, s.words, pageSize, time.Now().Unix())).Post(url)
 	if err != nil {
 		logger.SugaredLogger.Errorf("SearchStock-err:%+v", err)
 		return map[string]any{}

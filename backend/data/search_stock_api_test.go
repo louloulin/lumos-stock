@@ -2,16 +2,18 @@ package data
 
 import (
 	"encoding/json"
-	"github.com/duke-git/lancet/v2/convertor"
 	"go-stock/backend/db"
 	"go-stock/backend/logger"
 	"testing"
+
+	"github.com/duke-git/lancet/v2/convertor"
 )
 
 func TestSearchStock(t *testing.T) {
 	db.Init("../../data/stock.db")
 
 	res := NewSearchStockApi("算力股;净利润连续3年增长").SearchStock(10)
+	logger.SugaredLogger.Infof("res:%+v", res)
 	data := res["data"].(map[string]any)
 	result := data["result"].(map[string]any)
 	dataList := result["dataList"].([]any)
