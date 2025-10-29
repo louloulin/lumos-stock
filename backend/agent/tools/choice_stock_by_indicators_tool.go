@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go-stock/backend/data"
+
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/random"
-	"go-stock/backend/data"
 )
 
 // @Author spark
@@ -55,7 +56,7 @@ func (c ChoiceStockByIndicators) InvokableRun(ctx context.Context, argumentsInJS
 	}
 	content := "无符合条件的数据"
 	words := parms["words"].(string)
-	res := data.NewSearchStockApi(words).SearchStock(random.RandInt(5, 10))
+	res := data.NewSearchStockApi(words).SearchStock(random.RandInt(5, 20))
 	if convertor.ToString(res["code"]) == "100" {
 		resData := res["data"].(map[string]any)
 		result := resData["result"].(map[string]any)

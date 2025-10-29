@@ -12,7 +12,7 @@ import (
 func TestSearchStock(t *testing.T) {
 	db.Init("../../data/stock.db")
 
-	res := NewSearchStockApi("算力股;净利润连续3年增长").SearchStock(10)
+	res := NewSearchStockApi("量比大于2，基本面优秀，2025年三季报已披露，主力连续3日净流入，非创业板非科创板非ST").SearchStock(20)
 	logger.SugaredLogger.Infof("res:%+v", res)
 	data := res["data"].(map[string]any)
 	result := data["result"].(map[string]any)

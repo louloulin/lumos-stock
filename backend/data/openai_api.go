@@ -1155,7 +1155,7 @@ func AskAiWithTools(o *OpenAi, err error, messages []map[string]interface{}, ch 
 								}
 
 								content := "无符合条件的数据"
-								res := NewSearchStockApi(words).SearchStock(random.RandInt(5, 10))
+								res := NewSearchStockApi(words).SearchStock(random.RandInt(5, 20))
 								if convertor.ToString(res["code"]) == "100" {
 									resData := res["data"].(map[string]any)
 									result := resData["result"].(map[string]any)
