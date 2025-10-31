@@ -440,6 +440,7 @@ const menuOptions = ref([
             {default: () => 'Ai智能体'}
         ),
     key: 'agent',
+    show:false,
     icon: renderIcon(Robot),
   },
   {

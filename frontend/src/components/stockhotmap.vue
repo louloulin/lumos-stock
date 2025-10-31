@@ -21,6 +21,9 @@ import EmbeddedUrl from "./EmbeddedUrl.vue";
     <n-tab-pane name="摸鱼" tab="摸鱼">
       <embedded-url url="https://996.ninja/"  :height="'calc(100vh - 252px)'"/>
     </n-tab-pane>
+    <n-tab-pane name="财联社-行情数据" tab="财联社-行情数据">
+      <embedded-url url="https://www.cls.cn/quotation"  :height="'calc(100vh - 252px)'"/>
+    </n-tab-pane>
 
 
     <n-tab-pane name="欢迎推荐更多有趣的财经网页" tab="欢迎推荐更多有趣的财经网页">
