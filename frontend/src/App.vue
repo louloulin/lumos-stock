@@ -43,6 +43,7 @@ const loadingMsg = ref("加载数据中...")
 const enableNews = ref(false)
 const contentStyle = ref("")
 const enableFund = ref(false)
+const enableAgent = ref(false)
 const enableDarkTheme = ref(null)
 const content = ref('未经授权,禁止商业目的!\n\n数据来源于网络,仅供参考;投资有风险,入市需谨慎')
 const isFullscreen = ref(false)
@@ -440,7 +441,7 @@ const menuOptions = ref([
             {default: () => 'Ai智能体'}
         ),
     key: 'agent',
-    show:false,
+    show:enableAgent.value,
     icon: renderIcon(Robot),
   },
   {
@@ -647,10 +648,14 @@ onBeforeMount(() => {
   GetConfig().then((res) => {
     //console.log(res)
     enableFund.value = res.enableFund
+    enableAgent.value = res.enableAgent
 
     menuOptions.value.filter((item) => {
       if (item.key === 'fund') {
         item.show = res.enableFund
+      }
+      if (item.key === 'agent') {
+        item.show = res.enableAgent
       }
     })
 
@@ -669,6 +674,7 @@ onMounted(() => {
       enableNews.value = true
     }
     enableFund.value = res.enableFund
+    enableAgent.value = res.enableAgent
     const {notification } =createDiscreteApi(["notification"], {
       configProviderProps: {
         theme: enableDarkTheme.value ? darkTheme : lightTheme ,

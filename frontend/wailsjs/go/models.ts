@@ -393,6 +393,7 @@ export namespace data {
 	    sponsorCode: string;
 	    httpProxy: string;
 	    httpProxyEnabled: boolean;
+	    enableAgent: boolean;
 	    aiConfigs: AIConfig[];
 	
 	    static createFrom(source: any = {}) {
@@ -428,6 +429,7 @@ export namespace data {
 	        this.sponsorCode = source["sponsorCode"];
 	        this.httpProxy = source["httpProxy"];
 	        this.httpProxyEnabled = source["httpProxyEnabled"];
+	        this.enableAgent = source["enableAgent"];
 	        this.aiConfigs = this.convertValues(source["aiConfigs"], AIConfig);
 	    }
 	

@@ -45,6 +45,7 @@ const formValue = ref({
   sponsorCode: "",
   httpProxy:"",
   httpProxyEnabled:false,
+  enableAgent: false,
 })
 
 // 添加一个新的AI配置到列表
@@ -103,6 +104,7 @@ onMounted(() => {
     formValue.value.sponsorCode = res.sponsorCode
     formValue.value.httpProxy=res.httpProxy;
     formValue.value.httpProxyEnabled=res.httpProxyEnabled;
+    formValue.value.enableAgent = res.enableAgent;
 
   })
 
@@ -142,6 +144,7 @@ function saveConfig() {
     sponsorCode: formValue.value.sponsorCode,
     httpProxy:formValue.value.httpProxy,
     httpProxyEnabled:formValue.value.httpProxyEnabled,
+    enableAgent: formValue.value.enableAgent,
   })
 
   if (config.sponsorCode) {
@@ -231,6 +234,7 @@ function importConfig() {
       formValue.value.sponsorCode = config.sponsorCode
       formValue.value.httpProxy=config.httpProxy
       formValue.value.httpProxyEnabled=config.httpProxyEnabled
+      formValue.value.enableAgent = config.enableAgent
     };
     reader.readAsText(file);
   };
@@ -321,6 +325,10 @@ function deletePrompt(ID) {
             <n-form-item-gi :span="3" label="指数基金：" path="enableFund">
               <n-switch v-model:value="formValue.enableFund"/>
             </n-form-item-gi>
+            <n-form-item-gi :span="3" label="AI智能体：" path="enableAgent">
+              <n-switch v-model:value="formValue.enableAgent"/>
+            </n-form-item-gi>
+
             <n-form-item-gi :span="11" label="赞助码：" path="sponsorCode">
               <n-input-group>
                 <n-input :show-count="true" placeholder="赞助码" v-model:value="formValue.sponsorCode"/>

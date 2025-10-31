@@ -3,11 +3,12 @@ package data
 import (
 	"encoding/json"
 	"errors"
-	"github.com/samber/lo"
 	"go-stock/backend/db"
 	"go-stock/backend/logger"
-	"gorm.io/gorm"
 	"time"
+
+	"github.com/samber/lo"
+	"gorm.io/gorm"
 )
 
 type Settings struct {
@@ -35,6 +36,7 @@ type Settings struct {
 	SponsorCode            string `json:"sponsorCode"`
 	HttpProxy              string `json:"httpProxy"`
 	HttpProxyEnabled       bool   `json:"httpProxyEnabled"`
+	EnableAgent            bool   `json:"enableAgent"`
 }
 
 func (receiver Settings) TableName() string {
@@ -105,6 +107,7 @@ func UpdateConfig(s *SettingConfig) string {
 			"sponsor_code":               s.SponsorCode,
 			"http_proxy":                 s.HttpProxy,
 			"http_proxy_enabled":         s.HttpProxyEnabled,
+			"enable_agent":               s.EnableAgent,
 		})
 
 		//更新AiConfig
