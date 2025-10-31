@@ -6,7 +6,8 @@ import {
   Quit,
   WindowFullscreen,
   WindowHide,
-  WindowUnfullscreen
+  WindowUnfullscreen,
+  WindowSetTitle
 } from '../wailsjs/runtime'
 import {h, onBeforeMount, onBeforeUnmount, onMounted, ref} from "vue";
 import {RouterLink, useRouter} from 'vue-router'
@@ -668,6 +669,7 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
+  WindowSetTitle("go-stock：AI赋能股票分析✨  未经授权,禁止商业目的！ [数据来源于网络,仅供参考;投资有风险,入市需谨慎]")
   contentStyle.value = "max-height: calc(92vh);overflow: hidden"
   GetConfig().then((res) => {
     if (res.enableNews) {
@@ -721,7 +723,7 @@ onMounted(() => {
         <n-modal-provider>
           <n-dialog-provider>
             <n-watermark
-                :content="content"
+                :content="''"
                 cross
                 selectable
                 :font-size="16"

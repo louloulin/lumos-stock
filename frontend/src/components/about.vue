@@ -5,7 +5,9 @@ import 'md-editor-v3/lib/preview.css';
 import {h, onBeforeUnmount, onMounted, ref} from 'vue';
 import {CheckUpdate, GetVersionInfo,GetSponsorInfo,OpenURL} from "../../wailsjs/go/main/App";
 import {EventsOff, EventsOn,Environment} from "../../wailsjs/runtime";
-import {NAvatar, NButton, useNotification} from "naive-ui";
+import {NAvatar, NButton, useNotification,NText} from "naive-ui";
+import { addMonths, format ,parse} from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 const updateLog = ref('');
 const versionInfo = ref('');
 const icon = ref('https://raw.githubusercontent.com/ArvinLovegood/go-stock/master/build/appicon.png');
@@ -16,6 +18,7 @@ const notify = useNotification()
 const vipLevel=ref("");
 const vipStartTime=ref("");
 const vipEndTime=ref("");
+const expired=ref(false)
 
 onMounted(() => {
   document.title = '关于软件';
@@ -31,6 +34,13 @@ onMounted(() => {
       vipLevel.value = res.vipLevel;
       vipStartTime.value = res.vipStartTime;
       vipEndTime.value = res.vipEndTime;
+      //判断时间是否到期
+      if (res.vipLevel) {
+        if (res.vipEndTime < format(new Date(), 'yyyy-MM-dd HH:mm:ss')) {
+          notify.warning({content: 'VIP已到期'})
+          expired.value = true;
+        }
+      }
     })
 
   });
@@ -115,10 +125,10 @@ EventsOn("updateVersion",async (msg) => {
                 <n-gradient-text type="info" :size="50" >go-stock</n-gradient-text>
               </n-badge>
               <n-badge v-if="vipLevel"  :value="versionInfo" :offset="[50,10]"  type="success">
-                <n-gradient-text type="warning" :size="50" >go-stock</n-gradient-text><n-tag :bordered="false" size="small" type="warning">VIP{{vipLevel}}</n-tag>
+                <n-gradient-text :type="expired?'error':'warning'" :size="50" >go-stock</n-gradient-text><n-tag :bordered="false" size="small" type="warning">VIP{{vipLevel}}</n-tag>
               </n-badge>
             </h1>
-            <n-gradient-text type="warning"  v-if="vipLevel" >vip到期时间：{{vipEndTime}}</n-gradient-text>
+            <n-gradient-text  :type="expired?'error':'warning'" v-if="vipLevel" >vip到期时间：{{vipEndTime}}</n-gradient-text>
             <n-button size="tiny" @click="CheckUpdate(1)"  type="info" tertiary >检查更新</n-button>
             <div style="justify-self: center;text-align: left" >
               <p>自选股行情实时监控，基于Wails和NaiveUI构建的AI赋能股票分析工具</p>
