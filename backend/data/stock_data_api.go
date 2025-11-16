@@ -9,6 +9,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go-stock/backend/db"
+	"go-stock/backend/logger"
+	"go-stock/backend/models"
+	"io"
+	"io/ioutil"
+	"strings"
+	"time"
+
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/chromedp"
 	"github.com/duke-git/lancet/v2/convertor"
@@ -17,17 +25,10 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/robertkrimen/otto"
 	"github.com/samber/lo"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
-	"go-stock/backend/models"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 	"gorm.io/gorm"
 	"gorm.io/plugin/soft_delete"
-	"io"
-	"io/ioutil"
-	"strings"
-	"time"
 )
 
 const sinaStockUrl = "http://hq.sinajs.cn/rn=%d&list=%s"
@@ -1742,6 +1743,11 @@ func (receiver StockDataApi) GetCommonKLineData(stockCode string, kLineType stri
 		}
 	}
 	return K
+}
+
+// GetStockHistoryMoneyData 获取股票历史资金流向数据
+func (receiver StockDataApi) GetStockHistoryMoneyData() {
+
 }
 
 // JSONToMarkdownTable 将JSON数据转换为Markdown表格

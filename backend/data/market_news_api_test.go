@@ -38,7 +38,6 @@ func TestGetIndustryRank(t *testing.T) {
 	res := NewMarketNewsApi().GetIndustryRank("0", 10)
 	for s, a := range res["data"].([]any) {
 		logger.SugaredLogger.Debugf("key: %+v, value: %+v", s, a)
-
 	}
 }
 func TestGetIndustryMoneyRankSina(t *testing.T) {
