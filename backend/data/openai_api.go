@@ -323,7 +323,6 @@ func (o *OpenAi) NewSummaryStockNewsStreamWithTools(userQuestion string, sysProm
 			})
 		}()
 		wg.Wait()
-
 		news := NewMarketNewsApi().GetNewsList2("财联社电报", random.RandInt(100, 500))
 		messageText := strings.Builder{}
 		for _, telegraph := range *news {

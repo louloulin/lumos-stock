@@ -232,6 +232,7 @@ type Prompt struct {
 type Telegraph struct {
 	gorm.Model
 	Time            string          `json:"time"`
+	DataTime        *time.Time      `json:"dataTime"`
 	Content         string          `json:"content"`
 	SubjectTags     []string        `json:"subjects" gorm:"-:all"`
 	StocksTags      []string        `json:"stocks" gorm:"-:all"`

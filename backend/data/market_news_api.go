@@ -33,6 +33,52 @@ func NewMarketNewsApi() *MarketNewsApi {
 	return &MarketNewsApi{}
 }
 
+func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) map[string]any {
+	//https://www.cls.cn/nodeapi/telegraphList
+	url := "https://www.cls.cn/nodeapi/telegraphList"
+	res := map[string]any{}
+	_, _ = resty.New().SetTimeout(time.Duration(crawlTimeOut)*time.Second).R().
+		SetHeader("Referer", "https://www.cls.cn/").
+		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.60").
+		SetResult(&res).
+		Get(url)
+
+	if v, _ := convertor.ToInt(res["error"]); v == 0 {
+		data := res["data"].(map[string]any)
+		rollData := data["roll_data"].([]any)
+		var telegraphs []models.Telegraph
+		for _, v := range rollData {
+			news := v.(map[string]any)
+			ctime, _ := convertor.ToInt(news["ctime"])
+			dataTime := time.Unix(ctime, 0)
+			logger.SugaredLogger.Debugf("dataTime: %s", dataTime)
+			telegraph := models.Telegraph{
+				Content:         news["content"].(string),
+				Time:            dataTime.Format("15:04:05"),
+				DataTime:        &dataTime,
+				Url:             news["shareurl"].(string),
+				Source:          "财联社电报",
+				IsRed:           GetLevel(news["level"].(string)),
+				SentimentResult: AnalyzeSentiment(news["content"].(string)).Description,
+			}
+			cnt := int64(0)
+			db.Dao.Model(telegraph).Where("time=? and content=?", telegraph.Time, telegraph.Content).Count(&cnt)
+			if cnt > 0 {
+				continue
+			}
+			logger.SugaredLogger.Debugf("telegraph: %+v", telegraph)
+			telegraphs = append(telegraphs, telegraph)
+
+		}
+		db.Dao.Model(&models.Telegraph{}).Create(&telegraphs)
+	}
+
+	return res
+}
+func GetLevel(s string) bool {
+	return s >= "C"
+}
+
 func (m MarketNewsApi) GetNewTelegraph(crawlTimeOut int64) *[]models.Telegraph {
 	url := "https://www.cls.cn/telegraph"
 	response, _ := resty.New().SetTimeout(time.Duration(crawlTimeOut)*time.Second).R().
@@ -77,7 +123,7 @@ func (m MarketNewsApi) GetNewTelegraph(crawlTimeOut int64) *[]models.Telegraph {
 		if telegraph.Content != "" {
 			telegraph.SentimentResult = AnalyzeSentiment(telegraph.Content).Description
 			cnt := int64(0)
-			db.Dao.Model(telegraph).Where("time=? and source=?", telegraph.Time, telegraph.Source).Count(&cnt)
+			db.Dao.Model(telegraph).Where("time=? and content=?", telegraph.Time, telegraph.Content).Count(&cnt)
 			if cnt == 0 {
 				db.Dao.Create(&telegraph)
 				telegraphs = append(telegraphs, telegraph)
@@ -118,6 +164,7 @@ func (m MarketNewsApi) GetNewsList(source string, limit int) *[]*models.Telegrap
 	return news
 }
 func (m MarketNewsApi) GetNewsList2(source string, limit int) *[]*models.Telegraph {
+	NewMarketNewsApi().TelegraphList(30)
 	news := &[]*models.Telegraph{}
 	if source != "" {
 		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("id desc,is_red desc").Limit(limit).Find(news)
