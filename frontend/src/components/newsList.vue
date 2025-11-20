@@ -49,6 +49,9 @@ const updateMessage = () => {
             <n-text type="warning">查看原文</n-text>
           </a>
         </n-tag>
+        <n-tag v-if="item.sentimentResult" :bordered="false" :type="item.sentimentResult==='看涨'?'error':item.sentimentResult==='看跌'?'success':'info'" size="small">
+          {{ item.sentimentResult }}
+        </n-tag>
       </n-space>
     </n-list-item>
   </n-list>
