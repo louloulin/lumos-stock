@@ -240,7 +240,7 @@ type Telegraph struct {
 	Url             string          `json:"url"`
 	Source          string          `json:"source"`
 	TelegraphTags   []TelegraphTags `json:"tags" gorm:"-:migration;foreignKey:TelegraphId"`
-	SentimentResult string          `json:"sentimentResult" gorm:"-:all"`
+	SentimentResult string          `json:"sentimentResult"`
 }
 type TelegraphTags struct {
 	gorm.Model

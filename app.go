@@ -428,7 +428,8 @@ func (a *App) domReady(ctx context.Context) {
 			a.cronEntrys["MonitorStockPrices"] = id
 		}
 		entryID, err := a.cron.AddFunc(fmt.Sprintf("@every %ds", interval+10), func() {
-			news := data.NewMarketNewsApi().GetNewTelegraph(30)
+			//news := data.NewMarketNewsApi().GetNewTelegraph(30)
+			news := data.NewMarketNewsApi().TelegraphList(30)
 			if config.EnablePushNews {
 				go a.NewsPush(news)
 			}
@@ -564,65 +565,84 @@ func (a *App) CheckStockBaseInfo(ctx context.Context) {
 		SetResult(stockBasics).
 		Get("http://8.134.249.145:18080/go-stock/stock_basic.json")
 
-	count := int64(0)
-	db.Dao.Model(&data.StockBasic{}).Count(&count)
-	if count == int64(len(*stockBasics)) {
-		return
+	db.Dao.Unscoped().Model(&data.StockBasic{}).Where("1=1").Delete(&data.StockBasic{})
+	err := db.Dao.CreateInBatches(stockBasics, 400).Error
+	if err != nil {
+		logger.SugaredLogger.Errorf("保存StockBasic股票基础信息失败:%s", err.Error())
 	}
-	for _, stock := range *stockBasics {
-		stockInfo := &data.StockBasic{
-			TsCode: stock.TsCode,
-			Name:   stock.Name,
-			Symbol: stock.Symbol,
-			BKCode: stock.BKCode,
-			BKName: stock.BKName,
-		}
-		db.Dao.Model(&data.StockBasic{}).Where("ts_code = ?", stock.TsCode).First(stockInfo)
-		if stockInfo.ID == 0 {
-			db.Dao.Model(&data.StockBasic{}).Create(stockInfo)
-		} else {
-			db.Dao.Model(&data.StockBasic{}).Where("ts_code = ?", stock.TsCode).Updates(stockInfo)
-		}
-	}
+
+	//count := int64(0)
+	//db.Dao.Model(&data.StockBasic{}).Count(&count)
+	//if count == int64(len(*stockBasics)) {
+	//	return
+	//}
+	//for _, stock := range *stockBasics {
+	//	stockInfo := &data.StockBasic{
+	//		TsCode: stock.TsCode,
+	//		Name:   stock.Name,
+	//		Symbol: stock.Symbol,
+	//		BKCode: stock.BKCode,
+	//		BKName: stock.BKName,
+	//	}
+	//	db.Dao.Model(&data.StockBasic{}).Where("ts_code = ?", stock.TsCode).First(stockInfo)
+	//	if stockInfo.ID == 0 {
+	//		db.Dao.Model(&data.StockBasic{}).Create(stockInfo)
+	//	} else {
+	//		db.Dao.Model(&data.StockBasic{}).Where("ts_code = ?", stock.TsCode).Updates(stockInfo)
+	//	}
+	//}
 
 	stockHKBasics := &[]models.StockInfoHK{}
 	resty.New().R().
 		SetHeader("user", "go-stock").
 		SetResult(stockHKBasics).
 		Get("http://8.134.249.145:18080/go-stock/stock_base_info_hk.json")
-	for _, stock := range *stockHKBasics {
-		stockInfo := &models.StockInfoHK{
-			Code:   stock.Code,
-			Name:   stock.Name,
-			BKName: stock.BKName,
-			BKCode: stock.BKCode,
-		}
-		db.Dao.Model(&models.StockInfoHK{}).Where("code = ?", stock.Code).First(stockInfo)
-		if stockInfo.ID == 0 {
-			db.Dao.Model(&models.StockInfoHK{}).Create(stockInfo)
-		} else {
-			db.Dao.Model(&models.StockInfoHK{}).Where("code = ?", stock.Code).Updates(stockInfo)
-		}
+
+	db.Dao.Unscoped().Model(&models.StockInfoHK{}).Where("1=1").Delete(&models.StockInfoHK{})
+	err = db.Dao.CreateInBatches(stockHKBasics, 400).Error
+	if err != nil {
+		logger.SugaredLogger.Errorf("保存StockInfoHK股票基础信息失败:%s", err.Error())
 	}
+
+	//for _, stock := range *stockHKBasics {
+	//	stockInfo := &models.StockInfoHK{
+	//		Code:   stock.Code,
+	//		Name:   stock.Name,
+	//		BKName: stock.BKName,
+	//		BKCode: stock.BKCode,
+	//	}
+	//	db.Dao.Model(&models.StockInfoHK{}).Where("code = ?", stock.Code).First(stockInfo)
+	//	if stockInfo.ID == 0 {
+	//		db.Dao.Model(&models.StockInfoHK{}).Create(stockInfo)
+	//	} else {
+	//		db.Dao.Model(&models.StockInfoHK{}).Where("code = ?", stock.Code).Updates(stockInfo)
+	//	}
+	//}
 	stockUSBasics := &[]models.StockInfoUS{}
 	resty.New().R().
 		SetHeader("user", "go-stock").
 		SetResult(stockUSBasics).
 		Get("http://8.134.249.145:18080/go-stock/stock_base_info_us.json")
-	for _, stock := range *stockUSBasics {
-		stockInfo := &models.StockInfoUS{
-			Code:   stock.Code,
-			Name:   stock.Name,
-			BKName: stock.BKName,
-			BKCode: stock.BKCode,
-		}
-		db.Dao.Model(&models.StockInfoUS{}).Where("code = ?", stock.Code).First(stockInfo)
-		if stockInfo.ID == 0 {
-			db.Dao.Model(&models.StockInfoUS{}).Create(stockInfo)
-		} else {
-			db.Dao.Model(&models.StockInfoUS{}).Where("code = ?", stock.Code).Updates(stockInfo)
-		}
+
+	db.Dao.Unscoped().Model(&models.StockInfoUS{}).Where("1=1").Delete(&models.StockInfoUS{})
+	err = db.Dao.CreateInBatches(stockUSBasics, 400).Error
+	if err != nil {
+		logger.SugaredLogger.Errorf("保存StockInfoUS股票基础信息失败:%s", err.Error())
 	}
+	//for _, stock := range *stockUSBasics {
+	//	stockInfo := &models.StockInfoUS{
+	//		Code:   stock.Code,
+	//		Name:   stock.Name,
+	//		BKName: stock.BKName,
+	//		BKCode: stock.BKCode,
+	//	}
+	//	db.Dao.Model(&models.StockInfoUS{}).Where("code = ?", stock.Code).First(stockInfo)
+	//	if stockInfo.ID == 0 {
+	//		db.Dao.Model(&models.StockInfoUS{}).Create(stockInfo)
+	//	} else {
+	//		db.Dao.Model(&models.StockInfoUS{}).Where("code = ?", stock.Code).Updates(stockInfo)
+	//	}
+	//}
 
 }
 func (a *App) NewsPush(news *[]models.Telegraph) {
@@ -1337,7 +1357,8 @@ func (a *App) GetTelegraphList(source string) *[]*models.Telegraph {
 }
 
 func (a *App) ReFleshTelegraphList(source string) *[]*models.Telegraph {
-	data.NewMarketNewsApi().GetNewTelegraph(30)
+	//data.NewMarketNewsApi().GetNewTelegraph(30)
+	data.NewMarketNewsApi().TelegraphList(30)
 	data.NewMarketNewsApi().GetSinaNews(30)
 	telegraphs := data.NewMarketNewsApi().GetTelegraphList(source)
 	return telegraphs

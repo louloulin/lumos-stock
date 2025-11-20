@@ -33,7 +33,7 @@ func NewMarketNewsApi() *MarketNewsApi {
 	return &MarketNewsApi{}
 }
 
-func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) map[string]any {
+func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) *[]models.Telegraph {
 	//https://www.cls.cn/nodeapi/telegraphList
 	url := "https://www.cls.cn/nodeapi/telegraphList"
 	res := map[string]any{}
@@ -42,11 +42,11 @@ func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) map[string]any {
 		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.60").
 		SetResult(&res).
 		Get(url)
+	var telegraphs []models.Telegraph
 
 	if v, _ := convertor.ToInt(res["error"]); v == 0 {
 		data := res["data"].(map[string]any)
 		rollData := data["roll_data"].([]any)
-		var telegraphs []models.Telegraph
 		for _, v := range rollData {
 			news := v.(map[string]any)
 			ctime, _ := convertor.ToInt(news["ctime"])
@@ -66,14 +66,32 @@ func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) map[string]any {
 			if cnt > 0 {
 				continue
 			}
-			logger.SugaredLogger.Debugf("telegraph: %+v", telegraph)
 			telegraphs = append(telegraphs, telegraph)
+			db.Dao.Model(&models.Telegraph{}).Create(&telegraph)
+			logger.SugaredLogger.Debugf("telegraph: %+v", &telegraph)
+			if news["subjects"] == nil {
+				continue
+			}
+			subjects := news["subjects"].([]any)
+			for _, subject := range subjects {
+				name := subject.(map[string]any)["subject_name"].(string)
+				tag := &models.Tags{
+					Name: name,
+					Type: "subject",
+				}
+				db.Dao.Model(tag).Where("name=? and type=?", name, "subject").FirstOrCreate(&tag)
+				db.Dao.Model(models.TelegraphTags{}).Where("telegraph_id=? and tag_id=?", telegraph.ID, tag.ID).FirstOrCreate(&models.TelegraphTags{
+					TelegraphId: telegraph.ID,
+					TagId:       tag.ID,
+				})
+			}
 
 		}
-		db.Dao.Model(&models.Telegraph{}).Create(&telegraphs)
+		//db.Dao.Model(&models.Telegraph{}).Create(&telegraphs)
+		//logger.SugaredLogger.Debugf("telegraphs: %+v", &telegraphs)
 	}
 
-	return res
+	return &telegraphs
 }
 func GetLevel(s string) bool {
 	return s >= "C"

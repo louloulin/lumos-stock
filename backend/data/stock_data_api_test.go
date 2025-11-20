@@ -265,3 +265,20 @@ func TestStockDataApi_GetIndexBasic(t *testing.T) {
 	stockDataApi := NewStockDataApi()
 	stockDataApi.GetIndexBasic()
 }
+
+func TestName(t *testing.T) {
+	db.Init("../../data/stock.db")
+
+	stockBasics := &[]StockBasic{}
+	resty.New().R().
+		SetHeader("user", "go-stock").
+		SetResult(stockBasics).
+		Get("http://8.134.249.145:18080/go-stock/stock_basic.json")
+
+	db.Dao.Unscoped().Model(&StockBasic{}).Where("1=1").Delete(&StockBasic{})
+	err := db.Dao.CreateInBatches(stockBasics, 400).Error
+	if err != nil {
+		t.Log(err.Error())
+	}
+
+}
