@@ -45,6 +45,9 @@ func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) *[]models.Telegraph {
 	var telegraphs []models.Telegraph
 
 	if v, _ := convertor.ToInt(res["error"]); v == 0 {
+		if res["data"] == nil {
+			return m.GetNewTelegraph(30)
+		}
 		data := res["data"].(map[string]any)
 		rollData := data["roll_data"].([]any)
 		for _, v := range rollData {
