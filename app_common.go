@@ -76,7 +76,7 @@ func (a *App) ChatWithAgent(question string, aiConfigId int, sysPromptId *int) {
 
 func (a *App) AnalyzeSentimentWithFreqWeight(text string) map[string]any {
 	if text == "" {
-		telegraphs := data.NewMarketNewsApi().GetNewsList2("", 1000)
+		telegraphs := data.NewMarketNewsApi().GetNews24HoursList("财联社电报", 1000)
 		messageText := strings.Builder{}
 		for _, telegraph := range *telegraphs {
 			messageText.WriteString(telegraph.Content + "\n")

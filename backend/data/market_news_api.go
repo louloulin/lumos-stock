@@ -1027,3 +1027,33 @@ func (m MarketNewsApi) CailianpressWeb(searchWords string) *models.CailianpressW
 
 	return res
 }
+
+func (m MarketNewsApi) GetNews24HoursList(source string, limit int) *[]*models.Telegraph {
+	news := &[]*models.Telegraph{}
+	if source != "" {
+		db.Dao.Model(news).Preload("TelegraphTags").Where("source=? and created_at>?", source, time.Now().Add(-24*time.Hour)).Order("id desc,is_red desc").Limit(limit).Find(news)
+	} else {
+		db.Dao.Model(news).Preload("TelegraphTags").Where("created_at>?", time.Now().Add(-24*time.Hour)).Order("id desc,is_red desc").Limit(limit).Find(news)
+	}
+	// 内容去重
+	uniqueNews := make([]*models.Telegraph, 0)
+	seenContent := make(map[string]bool)
+	for _, item := range *news {
+		tags := &[]models.Tags{}
+		db.Dao.Model(&models.Tags{}).Where("id in ?", lo.Map(item.TelegraphTags, func(item models.TelegraphTags, index int) uint {
+			return item.TagId
+		})).Find(&tags)
+		tagNames := lo.Map(*tags, func(item models.Tags, index int) string {
+			return item.Name
+		})
+		item.SubjectTags = tagNames
+		//logger.SugaredLogger.Infof("tagNames %v ，SubjectTags：%s", tagNames, item.SubjectTags)
+		// 使用内容作为去重键值，可以考虑只使用内容的前几个字符或哈希值
+		contentKey := strings.TrimSpace(item.Content)
+		if contentKey != "" && !seenContent[contentKey] {
+			seenContent[contentKey] = true
+			uniqueNews = append(uniqueNews, item)
+		}
+	}
+	return &uniqueNews
+}
