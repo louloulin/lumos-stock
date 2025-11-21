@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"go-stock/backend/agent"
 	"go-stock/backend/data"
 	"go-stock/backend/models"
+	"strings"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // @Author spark
@@ -26,48 +28,66 @@ func (a *App) StockNotice(stockCode string) []any {
 func (a *App) IndustryResearchReport(industryCode string) []any {
 	return data.NewMarketNewsApi().IndustryResearchReport(industryCode, 7)
 }
-func (a App) EMDictCode(code string) []any {
+func (a *App) EMDictCode(code string) []any {
 	return data.NewMarketNewsApi().EMDictCode(code, a.cache)
 }
 
-func (a App) AnalyzeSentiment(text string) data.SentimentResult {
+func (a *App) AnalyzeSentiment(text string) data.SentimentResult {
 	return data.AnalyzeSentiment(text)
 }
 
-func (a App) HotStock(marketType string) *[]models.HotItem {
+func (a *App) HotStock(marketType string) *[]models.HotItem {
 	return data.NewMarketNewsApi().XUEQIUHotStock(100, marketType)
 }
 
-func (a App) HotEvent(size int) *[]models.HotEvent {
+func (a *App) HotEvent(size int) *[]models.HotEvent {
 	if size <= 0 {
 		size = 10
 	}
 	return data.NewMarketNewsApi().HotEvent(size)
 }
-func (a App) HotTopic(size int) []any {
+func (a *App) HotTopic(size int) []any {
 	if size <= 0 {
 		size = 10
 	}
 	return data.NewMarketNewsApi().HotTopic(size)
 }
 
-func (a App) InvestCalendarTimeLine(yearMonth string) []any {
+func (a *App) InvestCalendarTimeLine(yearMonth string) []any {
 	return data.NewMarketNewsApi().InvestCalendar(yearMonth)
 }
-func (a App) ClsCalendar() []any {
+func (a *App) ClsCalendar() []any {
 	return data.NewMarketNewsApi().ClsCalendar()
 }
 
-func (a App) SearchStock(words string) map[string]any {
+func (a *App) SearchStock(words string) map[string]any {
 	return data.NewSearchStockApi(words).SearchStock(5000)
 }
-func (a App) GetHotStrategy() map[string]any {
+func (a *App) GetHotStrategy() map[string]any {
 	return data.NewSearchStockApi("").HotStrategy()
 }
 
-func (a App) ChatWithAgent(question string, aiConfigId int, sysPromptId *int) {
+func (a *App) ChatWithAgent(question string, aiConfigId int, sysPromptId *int) {
 	ch := agent.NewStockAiAgentApi().Chat(question, aiConfigId, sysPromptId)
 	for msg := range ch {
 		runtime.EventsEmit(a.ctx, "agent-message", msg)
+	}
+}
+
+func (a *App) AnalyzeSentimentWithFreqWeight(text string) map[string]any {
+	if text == "" {
+		telegraphs := data.NewMarketNewsApi().GetNewsList2("", 1000)
+		messageText := strings.Builder{}
+		for _, telegraph := range *telegraphs {
+			messageText.WriteString(telegraph.Content + "\n")
+		}
+		text = messageText.String()
+	}
+	result, frequencies := data.AnalyzeSentimentWithFreqWeight(text)
+	// 过滤标点符号和分隔符
+	cleanFrequencies := data.FilterAndSortWords(frequencies)
+	return map[string]any{
+		"result":      result,
+		"frequencies": cleanFrequencies,
 	}
 }

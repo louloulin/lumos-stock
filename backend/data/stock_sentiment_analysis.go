@@ -2,11 +2,19 @@ package data
 
 import (
 	"bufio"
+	_ "embed"
 	"fmt"
+	"go-stock/backend/db"
 	"go-stock/backend/logger"
+	"go-stock/backend/models"
 	"os"
+	"regexp"
+	"sort"
 	"strings"
+	"unicode"
 
+	"github.com/duke-git/lancet/v2/fileutil"
+	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/go-ego/gse"
 )
 
@@ -16,7 +24,7 @@ var (
 
 	// 正面金融词汇及其权重
 	positiveFinanceWords = map[string]float64{
-		"上涨": 2.0, "涨停": 3.0, "牛市": 3.0, "反弹": 2.0, "新高": 2.5,
+		"涨": 1.0, "上涨": 2.0, "涨停": 3.0, "牛市": 3.0, "反弹": 2.0, "新高": 2.5,
 		"利好": 2.5, "增持": 2.0, "买入": 2.0, "推荐": 1.5, "看多": 2.0,
 		"盈利": 2.0, "增长": 2.0, "超预期": 2.5, "强劲": 1.5, "回升": 1.5,
 		"复苏": 2.0, "突破": 2.0, "创新高": 3.0, "回暖": 1.5, "上扬": 1.5,
@@ -27,13 +35,13 @@ var (
 
 	// 负面金融词汇及其权重
 	negativeFinanceWords = map[string]float64{
-		"下跌": 2.0, "跌停": 3.0, "熊市": 3.0, "回调": 1.5, "新低": 2.5,
+		"跌": 1.0, "下跌": 2.0, "跌停": 3.0, "熊市": 3.0, "回调": 1.5, "新低": 2.5,
 		"利空": 2.5, "减持": 2.0, "卖出": 2.0, "看空": 2.0, "亏损": 2.5,
 		"下滑": 2.0, "萎缩": 2.0, "不及预期": 2.5, "疲软": 1.5, "恶化": 2.0,
 		"衰退": 2.0, "跌破": 2.0, "创新低": 3.0, "走弱": 1.5, "下挫": 1.5,
 		"利空消息": 3.0, "收益下降": 2.5, "利润下滑": 2.5, "业绩不佳": 2.5,
 		"垃圾股": 2.0, "风险股": 2.0, "弱势": 1.5, "走低": 1.5, "缩量": 2.5,
-		"大跌": 2.5, "暴跌": 3.0, "崩盘": 3.0, "跳水": 3.0, "重挫": 3.0,
+		"大跌": 2.5, "暴跌": 3.0, "崩盘": 3.0, "跳水": 3.0, "重挫": 3.0, "跌超": 2.5, "跌逾": 2.5,
 	}
 
 	// 否定词，用于反转情感极性
@@ -45,7 +53,7 @@ var (
 	degreeWords = map[string]float64{
 		"非常": 1.8, "极其": 2.2, "太": 1.8, "很": 1.5,
 		"比较": 0.8, "稍微": 0.6, "有点": 0.7, "显著": 1.5,
-		"大幅": 1.8, "急剧": 2.0, "轻微": 0.6, "小幅": 0.7,
+		"大幅": 1.8, "急剧": 2.0, "轻微": 0.6, "小幅": 0.7, "逾": 1.8,
 	}
 
 	// 转折词，用于识别情感转折
@@ -54,12 +62,194 @@ var (
 	}
 )
 
-func init() {
-	// 加载默认词典
-	err := seg.LoadDict()
+//go:embed data/dict/base.txt
+var baseDict string
+
+//go:embed data/dict/zh/s_1.txt
+var zhDict string
+
+func InitAnalyzeSentiment() {
+	logger.SugaredLogger.Infof("初始化词典库路径:%s", fileutil.CurrentPath())
+	//加载默认词典
+	err := seg.LoadDictEmbed(zhDict)
+	err = seg.LoadDictEmbed(baseDict)
 	if err != nil {
 		logger.SugaredLogger.Error(err.Error())
 	}
+	stocks := &[]StockBasic{}
+	db.Dao.Model(&StockBasic{}).Find(stocks)
+	for _, stock := range *stocks {
+		if strutil.Trim(stock.Name) == "" {
+			continue
+		}
+		err := seg.AddToken(stock.Name, 188888, "n")
+		if strutil.Trim(stock.BKName) != "" {
+			err = seg.AddToken(stock.BKName, 188888, "n")
+		}
+		if err != nil {
+			logger.SugaredLogger.Errorf("添加%s失败:%s", stock.Name, err.Error())
+		}
+	}
+	stockhks := &[]models.StockInfoHK{}
+	db.Dao.Model(&models.StockInfoHK{}).Find(stockhks)
+	for _, stock := range *stockhks {
+		if strutil.Trim(stock.Name) == "" {
+			continue
+		}
+		err := seg.AddToken(stock.Name, 188888, "n")
+		if strutil.Trim(stock.BKName) != "" {
+			err = seg.AddToken(stock.BKName, 188888, "n")
+		}
+		if err != nil {
+			logger.SugaredLogger.Errorf("添加%s失败:%s", stock.Name, err.Error())
+		}
+	}
+	//stockus := &[]models.StockInfoUS{}
+	//db.Dao.Model(&models.StockInfoUS{}).Where("trim(name) != ?", "").Find(stockus)
+	//for _, stock := range *stockus {
+	//	err := seg.AddToken(stock.Name, 500)
+	//	if err != nil {
+	//		logger.SugaredLogger.Errorf("添加%s失败:%s", stock.Name, err.Error())
+	//	}
+	//}
+	tags := &[]models.Tags{}
+	db.Dao.Model(&models.Tags{}).Find(tags)
+	for _, tag := range *tags {
+		err := seg.AddToken(tag.Name, 188888, "n")
+		if err != nil {
+			logger.SugaredLogger.Errorf("添加%s失败:%s", tag.Name, err.Error())
+		}
+	}
+
+	logger.SugaredLogger.Info("加载词典成功")
+}
+
+// WordFreqWithWeight 词频统计结果，包含权重信息
+type WordFreqWithWeight struct {
+	Word      string
+	Frequency int
+	Weight    float64
+}
+
+// getWordWeight 获取词汇权重
+func getWordWeight(word string) float64 {
+	// 从分词器获取词汇权重
+	freq, pos, _ := seg.Find(word)
+	if pos == "n" {
+		return freq
+	}
+	return 0
+}
+
+// SortByWeightAndFrequency 按权重和频次排序词频结果
+func SortByWeightAndFrequency(frequencies map[string]WordFreqWithWeight) []WordFreqWithWeight {
+	// 将map转换为slice以便排序
+	freqSlice := make([]WordFreqWithWeight, 0, len(frequencies))
+	for _, freq := range frequencies {
+		freqSlice = append(freqSlice, freq)
+	}
+
+	// 按权重降序排列，如果权重相同则按频次降序排列
+	sort.Slice(freqSlice, func(i, j int) bool {
+		if freqSlice[i].Weight != freqSlice[j].Weight {
+			return freqSlice[i].Weight > freqSlice[j].Weight // 权重高的排前面
+		}
+		return freqSlice[i].Frequency > freqSlice[j].Frequency // 权重相同时频次高的排前面
+	})
+
+	return freqSlice
+}
+
+// FilterAndSortWords 过滤标点符号并按权重频次排序
+func FilterAndSortWords(frequencies map[string]WordFreqWithWeight) []WordFreqWithWeight {
+	// 先过滤标点符号和分隔符
+	cleanFrequencies := FilterPunctuationAndSeparators(frequencies)
+
+	// 再按权重和频次排序
+	sortedFrequencies := SortByWeightAndFrequency(cleanFrequencies)
+
+	return sortedFrequencies
+}
+func FilterPunctuationAndSeparators(frequencies map[string]WordFreqWithWeight) map[string]WordFreqWithWeight {
+	filteredWords := make(map[string]WordFreqWithWeight)
+
+	for word, freqInfo := range frequencies {
+		// 过滤纯标点符号和分隔符
+		if !isPunctuationOrSeparator(word) {
+			filteredWords[word] = freqInfo
+		}
+	}
+	return filteredWords
+}
+
+// isPunctuationOrSeparator 判断是否为标点符号或分隔符
+func isPunctuationOrSeparator(word string) bool {
+	// 空字符串
+	if strings.TrimSpace(word) == "" {
+		return true
+	}
+
+	// 检查是否全部由标点符号组成
+	for _, r := range word {
+		if !unicode.IsPunct(r) && !unicode.IsSymbol(r) && !unicode.IsSpace(r) {
+			return false
+		}
+	}
+	return true
+}
+
+// FilterWithRegex 使用正则表达式过滤标点和特殊字符
+func FilterWithRegex(frequencies map[string]WordFreqWithWeight) map[string]WordFreqWithWeight {
+	filteredWords := make(map[string]WordFreqWithWeight)
+
+	// 匹配标点符号、特殊字符的正则表达式
+	punctuationRegex := regexp.MustCompile(`^[[:punct:][:space:]]+$`)
+
+	for word, freqInfo := range frequencies {
+		// 过滤纯标点符号
+		if !punctuationRegex.MatchString(word) && strings.TrimSpace(word) != "" {
+			filteredWords[word] = freqInfo
+		}
+	}
+	return filteredWords
+}
+
+// countWordFrequencyWithWeight 统计词频并包含权重信息
+func countWordFrequencyWithWeight(text string) map[string]WordFreqWithWeight {
+	words := splitWords(text)
+	freqMap := make(map[string]WordFreqWithWeight)
+
+	// 统计词频
+	wordCount := make(map[string]int)
+	for _, word := range words {
+		wordCount[word]++
+	}
+
+	// 构建包含权重的结果
+	for word, frequency := range wordCount {
+		weight := getWordWeight(word)
+		if weight > 100 {
+			freqMap[word] = WordFreqWithWeight{
+				Word:      word,
+				Frequency: frequency,
+				Weight:    weight,
+			}
+		}
+
+	}
+
+	return freqMap
+}
+
+// AnalyzeSentimentWithFreqWeight 带权重词频统计的情感分析
+func AnalyzeSentimentWithFreqWeight(text string) (SentimentResult, map[string]WordFreqWithWeight) {
+	// 原有情感分析逻辑
+	result := AnalyzeSentiment(text)
+
+	// 带权重的词频统计
+	frequencies := countWordFrequencyWithWeight(text)
+
+	return result, frequencies
 }
 
 // SentimentResult 情感分析结果类型

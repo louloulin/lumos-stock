@@ -1,5 +1,6 @@
 <script setup>
-import {computed, h, onBeforeMount, onBeforeUnmount, onMounted, ref} from 'vue'
+import * as echarts from "echarts";
+import {computed, h, onBeforeMount, onBeforeUnmount, onMounted,onUnmounted, ref} from 'vue'
 import {
   GetAIResponseResult,
   GetConfig,
@@ -12,7 +13,7 @@ import {
   SaveAsMarkdown,
   ShareAnalysis,
   SummaryStockNews,
-  GetAiConfigs
+  GetAiConfigs, AnalyzeSentimentWithFreqWeight
 } from "../../wailsjs/go/main/App";
 import {EventsOff, EventsOn} from "../../wailsjs/runtime";
 import NewsList from "./newsList.vue";
@@ -75,6 +76,8 @@ const indexInterval = ref(null)
 const indexIndustryRank = ref(null)
 const stockCode= ref('')
 const enableTools= ref(true)
+const treemapRef = ref(null);
+let treemapchart =null;
 
 function getIndex() {
   GlobalStockIndexes().then((res) => {
@@ -120,7 +123,13 @@ onBeforeMount(() => {
   indexIndustryRank.value = setInterval(() => {
     industryRank()
   }, 1000 * 10)
+
+
 })
+onMounted(() => {
+  Analyze() // 页面显示
+})
+
 
 onBeforeUnmount(() => {
   EventsOff("changeMarketTab")
@@ -131,8 +140,12 @@ onBeforeUnmount(() => {
   clearInterval(indexIndustryRank.value)
 })
 
+onUnmounted(() => {
+
+});
 EventsOn("changeMarketTab", async (msg) => {
   //message.info(msg.name)
+  console.log(msg.name)
   updateTab(msg.name)
 })
 
@@ -142,6 +155,7 @@ EventsOn("newTelegraph", (data) => {
       telegraphList.value.pop()
     }
     telegraphList.value.unshift(...data)
+    Analyze() // 页面显示
   }
 })
 EventsOn("newSinaNews", (data) => {
@@ -150,12 +164,39 @@ EventsOn("newSinaNews", (data) => {
     sinaNewsList.value.pop()
   }
   sinaNewsList.value.unshift(...data)
+    Analyze() // 页面显示
   }
 })
 
 //获取页面高度
 window.onresize = () => {
   panelHeight.value = window.innerHeight - 240
+}
+
+function Analyze(){
+  console.log("treemapchart:",treemapchart)
+  console.log("treemapRef:",treemapRef.value)
+  treemapchart = echarts.init(treemapRef.value);
+  treemapchart.showLoading()
+  AnalyzeSentimentWithFreqWeight("").then((res) => {
+
+    let option = {
+      legend: {
+        show: false
+      },
+      series: [
+        {
+          type: 'treemap',
+          data: res['frequencies'].slice(0, 20).map(item => ({
+            name: item.Word,
+            value: item.Frequency,
+          }))
+        }
+      ]
+    };
+    treemapchart.setOption(option);
+    treemapchart.hideLoading()
+  })
 }
 
 function getAreaName(code) {
@@ -232,6 +273,9 @@ function getAiSummary() {
 function updateTab(name) {
   summaryBTN.value = (name === "市场快讯");
   nowTab.value = name
+  if (name === "市场快讯") {
+    Analyze()
+  }
 }
 
 EventsOn("summaryStockNews", async (msg) => {
@@ -320,14 +364,22 @@ function ReFlesh(source) {
   <n-card>
     <n-tabs type="line" animated @update-value="updateTab" :value="nowTab" style="--wails-draggable:no-drag">
       <n-tab-pane name="市场快讯" tab="市场快讯">
-        <n-grid :cols="2" :y-gap="0">
+        <n-grid :cols="1" :y-gap="0">
           <n-gi>
-            <news-list :newsList="telegraphList" :header-title="'财联社电报'" @update:message="ReFlesh"></news-list>
+            <div  ref="treemapRef"  style="width: 100%;height: 300px;" ></div>
           </n-gi>
           <n-gi>
-            <news-list :newsList="sinaNewsList" :header-title="'新浪财经'" @update:message="ReFlesh"></news-list>
+            <n-grid :cols="2" :y-gap="0">
+              <n-gi>
+                <news-list :newsList="telegraphList" :header-title="'财联社电报'" @update:message="ReFlesh"></news-list>
+              </n-gi>
+              <n-gi>
+                <news-list :newsList="sinaNewsList" :header-title="'新浪财经'" @update:message="ReFlesh"></news-list>
+              </n-gi>
+            </n-grid>
           </n-gi>
         </n-grid>
+
       </n-tab-pane>
       <n-tab-pane name="全球股指" tab="全球股指">
         <n-tabs type="segment" animated>

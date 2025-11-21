@@ -60,6 +60,7 @@ var BuildKey string
 func main() {
 	checkDir("data")
 	db.Init("")
+	data.InitAnalyzeSentiment()
 	go AutoMigrate()
 
 	//db.Dao.Model(&data.Group{}).Where("id = ?", 0).FirstOrCreate(&data.Group{
