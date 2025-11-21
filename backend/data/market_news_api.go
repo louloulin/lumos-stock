@@ -97,7 +97,7 @@ func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) *[]models.Telegraph {
 	return &telegraphs
 }
 func GetLevel(s string) bool {
-	return s >= "C"
+	return s > "C"
 }
 
 func (m MarketNewsApi) GetNewTelegraph(crawlTimeOut int64) *[]models.Telegraph {
