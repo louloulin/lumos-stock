@@ -13,7 +13,7 @@ import {
   SaveAsMarkdown,
   ShareAnalysis,
   SummaryStockNews,
-  GetAiConfigs, AnalyzeSentimentWithFreqWeight
+  GetAiConfigs,
 } from "../../wailsjs/go/main/App";
 import {EventsOff, EventsOn} from "../../wailsjs/runtime";
 import NewsList from "./newsList.vue";
@@ -127,7 +127,6 @@ onBeforeMount(() => {
 
 })
 onMounted(() => {
-  Analyze() // 页面显示
 })
 
 
@@ -155,7 +154,6 @@ EventsOn("newTelegraph", (data) => {
       telegraphList.value.pop()
     }
     telegraphList.value.unshift(...data)
-    Analyze() // 页面显示
   }
 })
 EventsOn("newSinaNews", (data) => {
@@ -164,41 +162,12 @@ EventsOn("newSinaNews", (data) => {
     sinaNewsList.value.pop()
   }
   sinaNewsList.value.unshift(...data)
-    Analyze() // 页面显示
   }
 })
 
 //获取页面高度
 window.onresize = () => {
   panelHeight.value = window.innerHeight - 240
-}
-
-function Analyze(){
-  console.log("treemapchart:",treemapchart)
-  console.log("treemapRef:",treemapRef.value)
-  treemapchart = echarts.init(treemapRef.value);
-  treemapchart.showLoading()
-  AnalyzeSentimentWithFreqWeight("").then((res) => {
-    console.log(res)
-    let option = {
-      legend: {
-        show: false
-      },
-      series: [
-        {
-          type: 'treemap',
-          data: res['frequencies'].map(item => ({
-            name: item.Word,
-           // value: item.Frequency,
-           // value: item.Weight,
-            value: item.Score,
-          }))
-        }
-      ]
-    };
-    treemapchart.setOption(option);
-    treemapchart.hideLoading()
-  })
 }
 
 function getAreaName(code) {
@@ -275,9 +244,6 @@ function getAiSummary() {
 function updateTab(name) {
   summaryBTN.value = (name === "市场快讯");
   nowTab.value = name
-  if (name === "市场快讯") {
-    Analyze()
-  }
 }
 
 EventsOn("summaryStockNews", async (msg) => {
@@ -368,7 +334,7 @@ function ReFlesh(source) {
       <n-tab-pane name="市场快讯" tab="市场快讯">
         <n-grid :cols="1" :y-gap="0">
           <n-gi>
-            <div  ref="treemapRef"  style="width: 100%;height: 300px;" ></div>
+            <AnalyzeMartket :dark-theme="darkTheme" :chart-height="300" :kDays="1" :name="'最近24小时热词'" />
           </n-gi>
           <n-gi>
             <n-grid :cols="2" :y-gap="0">
