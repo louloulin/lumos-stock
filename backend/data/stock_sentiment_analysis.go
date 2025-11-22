@@ -75,7 +75,19 @@ func InitAnalyzeSentiment() {
 	err = seg.LoadDictEmbed(baseDict)
 	if err != nil {
 		logger.SugaredLogger.Error(err.Error())
+	} else {
+		logger.SugaredLogger.Info("加载默认词典成功")
 	}
+	//加载用户自定义词典 先判断用户词典是否存在
+	if !fileutil.IsExist(fileutil.CurrentPath() + "/data/dict/user.txt") {
+		err = seg.LoadDictEmbed(fileutil.CurrentPath() + "/data/dict/user.txt")
+		if err != nil {
+			logger.SugaredLogger.Error(err.Error())
+		} else {
+			logger.SugaredLogger.Info("加载用户词典成功")
+		}
+	}
+
 	stocks := &[]StockBasic{}
 	db.Dao.Model(&StockBasic{}).Find(stocks)
 	for _, stock := range *stocks {
