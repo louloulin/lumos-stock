@@ -189,7 +189,7 @@ function Analyze(){
           type: 'treemap',
           data: res['frequencies'].slice(0, 20).map(item => ({
             name: item.Word,
-            value: item.Frequency,
+            value: item.Frequency*item.Weight,
           }))
         }
       ]
