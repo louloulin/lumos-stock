@@ -72,13 +72,13 @@ var baseDict string
 var zhDict string
 
 func InitAnalyzeSentiment() {
-	logger.SugaredLogger.Infof("初始化词典库路径:%s", fileutil.CurrentPath())
 	err := seg.LoadDictEmbed(baseDict)
 	if err != nil {
 		logger.SugaredLogger.Error(err.Error())
 	} else {
 		logger.SugaredLogger.Info("加载默认词典成功")
 	}
+	seg.CalcToken()
 	stocks := &[]StockBasic{}
 	db.Dao.Model(&StockBasic{}).Find(stocks)
 	for _, stock := range *stocks {
@@ -123,35 +123,40 @@ func InitAnalyzeSentiment() {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", tag.Name, err.Error())
 		}
 	}
-
+	seg.CalcToken()
 	//加载用户自定义词典 先判断用户词典是否存在
-	if fileutil.IsExist(fileutil.CurrentPath() + "/data/dict/user.txt") {
-		lines, err := fileutil.ReadFileByLine(fileutil.CurrentPath() + "/data/dict/user.txt")
+	if fileutil.IsExist("data/dict/user.txt") {
+		lines, err := fileutil.ReadFileByLine("data/dict/user.txt")
 		if err != nil {
 			logger.SugaredLogger.Error(err.Error())
 			return
 		}
 		for _, line := range lines {
+			if len(line) == 0 || line[0] == '#' {
+				continue
+			}
 			k := strutil.SplitAndTrim(line, " ")
 			switch len(k) {
 			case 1:
-				err = seg.AddToken(k[0], 100)
+				err = seg.ReAddToken(k[0], 100)
 			case 2:
 				freq, _ := convertor.ToFloat(k[1])
-				err = seg.AddToken(k[0], freq)
+				err = seg.ReAddToken(k[0], freq)
 			case 3:
 				freq, _ := convertor.ToFloat(k[1])
-				err = seg.AddToken(k[0], freq, k[2])
+				err = seg.ReAddToken(k[0], freq, k[2])
 			default:
 				logger.SugaredLogger.Errorf("用户词典格式错误:%s", line)
 			}
+			logger.SugaredLogger.Infof("添加用户词典[%s]成功", line)
 		}
 		if err != nil {
 			logger.SugaredLogger.Error(err.Error())
 		} else {
-			logger.SugaredLogger.Error("加载用户词典成功")
+			logger.SugaredLogger.Infof("加载用户词典成功")
 		}
 	}
+	seg.CalcToken()
 }
 
 // WordFreqWithWeight 词频统计结果，包含权重信息
@@ -167,7 +172,8 @@ func getWordWeight(word string) float64 {
 	// 从分词器获取词汇权重
 
 	freq, pos, ok := seg.Dictionary().Find([]byte(word))
-	if ok && pos == "n" {
+	if ok {
+		logger.SugaredLogger.Infof("获取%s的权重:%f,pos:%s,ok:%v", word, freq, pos, ok)
 		return basefreq + freq
 	}
 	return 0
@@ -258,7 +264,7 @@ func countWordFrequencyWithWeight(text string) map[string]WordFreqWithWeight {
 	// 构建包含权重的结果
 	for word, frequency := range wordCount {
 		weight := getWordWeight(word)
-		if weight > 0 {
+		if weight > 200 {
 			freqMap[word] = WordFreqWithWeight{
 				Word:      word,
 				Frequency: frequency,

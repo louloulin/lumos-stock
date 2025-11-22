@@ -189,6 +189,8 @@ function Analyze(){
           type: 'treemap',
           data: res['frequencies'].map(item => ({
             name: item.Word,
+           // value: item.Frequency,
+           // value: item.Weight,
             value: item.Score,
           }))
         }
