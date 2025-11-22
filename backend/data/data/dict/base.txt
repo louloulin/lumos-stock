@@ -136,6 +136,14 @@ Russell 2000 310 n
 标普600小型股指数 310 n
 纽约证交所综合指数 310 n
 NYSE Composite 300 n
+纳斯达克中国金龙指数 310 n
+英伟达 300 n
+苹果 300 n
+谷歌 300 n
+蔚来 300 n
+雅虎 300 n
+中概股 300 n
+雅虎财经 300 n
 # 欧洲市场
 德国DAX指数 330 n
 DAX 30 320 n
@@ -744,3 +752,175 @@ CNBC 320 n
 华夏基金 330 n
 嘉实基金 320 n
 博时基金 320 n
+# 知名美股与中概股（Jieba格式：词汇 权重 词性）
+# 权重320-350分，核心龙头股优先级最高，适配资讯分词场景
+
+# 一、知名美股（科技、消费、金融龙头）
+苹果 350 n
+Apple 340 n
+英伟达 350 n
+Nvidia 340 n
+特斯拉 350 n
+Tesla 340 n
+谷歌 340 n
+Alphabet 330 n
+亚马逊 340 n
+Amazon 330 n
+Meta Platforms 330 n
+Meta 330 n
+微软 350 n
+Microsoft 340 n
+甲骨文 320 n
+Oracle 310 n
+伯克希尔哈撒韦 320 n
+Berkshire Hathaway 310 n
+闪迪 300 n
+SanDisk 290 n
+高通 320 n
+Qualcomm 310 n
+英特尔 320 n
+Intel 310 n
+AMD 320 n
+超威半导体 310 n
+脸书 320 n
+Facebook 310 n
+推特 310 n
+Twitter 300 n
+Square 300 n
+Block 290 n
+PayPal 310 n
+贝宝 300 n
+星巴克 310 n
+Starbucks 300 n
+可口可乐 310 n
+Coca-Cola 300 n
+百事可乐 300 n
+PepsiCo 290 n
+沃尔玛 310 n
+Walmart 300 n
+家得宝 300 n
+Home Depot 290 n
+摩根大通 320 n
+JPMorgan Chase 310 n
+高盛 320 n
+Goldman Sachs 310 n
+摩根士丹利 320 n
+Morgan Stanley 310 n
+美国银行 310 n
+Bank of America 300 n
+
+# 二、知名中概股（互联网、新能源、金融、医药龙头）
+阿里巴巴 350 n
+Alibaba 340 n
+拼多多 340 n
+PDD 330 n
+蔚来汽车 330 n
+NIO 320 n
+理想汽车 330 n
+LI 320 n
+腾讯音乐 320 n
+TME 310 n
+唯品会 310 n
+VIPS 300 n
+富途控股 310 n
+FUTU 300 n
+老虎证券 310 n
+TIGR 300 n
+万物新生 300 n
+RERE 290 n
+涂鸦智能 300 n
+TUYA 290 n
+百济神州 320 n
+BeiGene 310 n
+百度集团 340 n
+Baidu 330 n
+文远知行 300 n
+WRD 290 n
+贝壳 310 n
+KE 300 n
+新氧 300 n
+SY 290 n
+京东 340 n
+JD.com 330 n
+京东物流 320 n
+JD Logistics 310 n
+腾讯控股 350 n
+Tencent Holdings 340 n
+美团 340 n
+Meituan 330 n
+小米集团 340 n
+Xiaomi Group 330 n
+快手 330 n
+Kuaishou 320 n
+字节跳动 340 n
+ByteDance 330 n
+滴滴 330 n
+DiDi 320 n
+携程 320 n
+Ctrip 310 n
+去哪儿 310 n
+Qunar 300 n
+同程旅行 300 n
+LY.com 290 n
+途牛 300 n
+Tuniu 290 n
+哔哩哔哩 320 n
+Bilibili 310 n
+爱奇艺 320 n
+iQiyi 310 n
+优酷 310 n
+Youku 300 n
+芒果超媒 310 n
+Mango TV 300 n
+网易 330 n
+NetEase 320 n
+新浪 320 n
+Sina 310 n
+微博 320 n
+Weibo 310 n
+知乎 310 n
+Zhihu 300 n
+小红书 310 n
+Xiaohongshu 300 n
+商汤科技 310 n
+SenseTime 300 n
+旷视科技 300 n
+Megvii 290 n
+云从科技 300 n
+Cloudwalk 290 n
+依图科技 300 n
+Yitu 290 n
+药明康德 320 n
+WuXi AppTec 310 n
+药明生物 320 n
+WuXi Biologics 310 n
+康希诺 310 n
+CanSino Biologics 300 n
+智飞生物 310 n
+Innovax 300 n
+宁德时代 350 n
+CATL 340 n
+比亚迪 340 n
+BYD 330 n
+小鹏汽车 330 n
+Xpeng 320 n
+哪吒汽车 310 n
+Nezha Auto 300 n
+零跑汽车 310 n
+Leapmotor 300 n
+极氪 310 n
+ZEEKR 300 n
+岚图汽车 300 n
+VOYAH 290 n
+华为 350 n
+Huawei 340 n
+荣耀 330 n
+Honor 320 n
+OPPO 330 n
+vivo 330 n
+一加 310 n
+OnePlus 300 n
+真我 310 n
+realme 300 n
+传音控股 310 n
+Transsion 300 n
