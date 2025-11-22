@@ -179,7 +179,7 @@ function Analyze(){
   treemapchart = echarts.init(treemapRef.value);
   treemapchart.showLoading()
   AnalyzeSentimentWithFreqWeight("").then((res) => {
-
+    console.log(res)
     let option = {
       legend: {
         show: false
@@ -187,9 +187,9 @@ function Analyze(){
       series: [
         {
           type: 'treemap',
-          data: res['frequencies'].slice(0, 20).map(item => ({
+          data: res['frequencies'].map(item => ({
             name: item.Word,
-            value: item.Frequency*item.Weight,
+            value: item.Score,
           }))
         }
       ]

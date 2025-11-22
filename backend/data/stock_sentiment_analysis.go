@@ -13,10 +13,13 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/fileutil"
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/go-ego/gse"
 )
+
+const basefreq float64 = 100
 
 // 金融情感词典，包含股票市场相关的专业词汇
 var (
@@ -70,33 +73,21 @@ var zhDict string
 
 func InitAnalyzeSentiment() {
 	logger.SugaredLogger.Infof("初始化词典库路径:%s", fileutil.CurrentPath())
-	//加载默认词典
-	err := seg.LoadDictEmbed(zhDict)
-	err = seg.LoadDictEmbed(baseDict)
+	err := seg.LoadDictEmbed(baseDict)
 	if err != nil {
 		logger.SugaredLogger.Error(err.Error())
 	} else {
 		logger.SugaredLogger.Info("加载默认词典成功")
 	}
-	//加载用户自定义词典 先判断用户词典是否存在
-	if !fileutil.IsExist(fileutil.CurrentPath() + "/data/dict/user.txt") {
-		err = seg.LoadDictEmbed(fileutil.CurrentPath() + "/data/dict/user.txt")
-		if err != nil {
-			logger.SugaredLogger.Error(err.Error())
-		} else {
-			logger.SugaredLogger.Info("加载用户词典成功")
-		}
-	}
-
 	stocks := &[]StockBasic{}
 	db.Dao.Model(&StockBasic{}).Find(stocks)
 	for _, stock := range *stocks {
 		if strutil.Trim(stock.Name) == "" {
 			continue
 		}
-		err := seg.AddToken(stock.Name, 188888, "n")
+		err := seg.AddToken(stock.Name, basefreq+500, "n")
 		if strutil.Trim(stock.BKName) != "" {
-			err = seg.AddToken(stock.BKName, 188888, "n")
+			err = seg.AddToken(stock.BKName, basefreq+500, "n")
 		}
 		if err != nil {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", stock.Name, err.Error())
@@ -108,9 +99,9 @@ func InitAnalyzeSentiment() {
 		if strutil.Trim(stock.Name) == "" {
 			continue
 		}
-		err := seg.AddToken(stock.Name, 188888, "n")
+		err := seg.AddToken(stock.Name, basefreq+500, "n")
 		if strutil.Trim(stock.BKName) != "" {
-			err = seg.AddToken(stock.BKName, 188888, "n")
+			err = seg.AddToken(stock.BKName, basefreq+500, "n")
 		}
 		if err != nil {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", stock.Name, err.Error())
@@ -127,13 +118,40 @@ func InitAnalyzeSentiment() {
 	tags := &[]models.Tags{}
 	db.Dao.Model(&models.Tags{}).Find(tags)
 	for _, tag := range *tags {
-		err := seg.AddToken(tag.Name, 188888, "n")
+		err := seg.AddToken(tag.Name, basefreq, "n")
 		if err != nil {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", tag.Name, err.Error())
 		}
 	}
 
-	logger.SugaredLogger.Info("加载词典成功")
+	//加载用户自定义词典 先判断用户词典是否存在
+	if fileutil.IsExist(fileutil.CurrentPath() + "/data/dict/user.txt") {
+		lines, err := fileutil.ReadFileByLine(fileutil.CurrentPath() + "/data/dict/user.txt")
+		if err != nil {
+			logger.SugaredLogger.Error(err.Error())
+			return
+		}
+		for _, line := range lines {
+			k := strutil.SplitAndTrim(line, " ")
+			switch len(k) {
+			case 1:
+				err = seg.AddToken(k[0], 100)
+			case 2:
+				freq, _ := convertor.ToFloat(k[1])
+				err = seg.AddToken(k[0], freq)
+			case 3:
+				freq, _ := convertor.ToFloat(k[1])
+				err = seg.AddToken(k[0], freq, k[2])
+			default:
+				logger.SugaredLogger.Errorf("用户词典格式错误:%s", line)
+			}
+		}
+		if err != nil {
+			logger.SugaredLogger.Error(err.Error())
+		} else {
+			logger.SugaredLogger.Error("加载用户词典成功")
+		}
+	}
 }
 
 // WordFreqWithWeight 词频统计结果，包含权重信息
@@ -141,14 +159,16 @@ type WordFreqWithWeight struct {
 	Word      string
 	Frequency int
 	Weight    float64
+	Score     float64
 }
 
 // getWordWeight 获取词汇权重
 func getWordWeight(word string) float64 {
 	// 从分词器获取词汇权重
-	freq, pos, _ := seg.Find(word)
-	if pos == "n" {
-		return freq
+
+	freq, pos, ok := seg.Dictionary().Find([]byte(word))
+	if ok && pos == "n" {
+		return basefreq + freq
 	}
 	return 0
 }
@@ -161,13 +181,11 @@ func SortByWeightAndFrequency(frequencies map[string]WordFreqWithWeight) []WordF
 		freqSlice = append(freqSlice, freq)
 	}
 
-	// 按权重降序排列，如果权重相同则按频次降序排列
+	// 按权重*频次降序排列
 	sort.Slice(freqSlice, func(i, j int) bool {
-		if freqSlice[i].Weight != freqSlice[j].Weight {
-			return freqSlice[i].Weight > freqSlice[j].Weight // 权重高的排前面
-		}
-		return freqSlice[i].Frequency > freqSlice[j].Frequency // 权重相同时频次高的排前面
+		return freqSlice[i].Weight*float64(freqSlice[i].Frequency) > freqSlice[j].Weight*float64(freqSlice[j].Frequency)
 	})
+	logger.SugaredLogger.Infof("排序后的结果:%v", freqSlice)
 
 	return freqSlice
 }
@@ -240,11 +258,12 @@ func countWordFrequencyWithWeight(text string) map[string]WordFreqWithWeight {
 	// 构建包含权重的结果
 	for word, frequency := range wordCount {
 		weight := getWordWeight(word)
-		if weight > 100 {
+		if weight > 0 {
 			freqMap[word] = WordFreqWithWeight{
 				Word:      word,
 				Frequency: frequency,
 				Weight:    weight,
+				Score:     float64(frequency) * weight,
 			}
 		}
 
