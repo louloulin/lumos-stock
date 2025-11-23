@@ -89,6 +89,7 @@ function  handleChart(){
 
 
     let option2 = {
+      darkMode: darkTheme,
       series: [
         {
           type: 'gauge',
@@ -96,8 +97,8 @@ function  handleChart(){
           endAngle: 0,
           center: ['50%', '75%'],
           radius: '90%',
-          min: 0,
-          max: 1,
+          min: -100,
+          max: 100,
           splitNumber: 8,
           axisLine: {
             lineStyle: {
@@ -108,10 +109,11 @@ function  handleChart(){
                 // [0.75, '#58D9F9'],
                 // [1, '#7CFFB2'],
 
-                [0.25, '#02f423'],
-                [0.5, '#58D9F9'],
-                [0.75, 'rgb(241,115,14)'],
-                [1, '#fa242f']
+                [0.25, '#03fb6a'],
+                [0.5, '#58e1f9'],
+                [0.75, '#ef5922'],
+                [1, '#f11d29'],
+
               ]
             }
           },
@@ -141,16 +143,18 @@ function  handleChart(){
           axisLabel: {
             color: '#464646',
             fontSize: 20,
-            distance: -60,
+            distance: -45,
             rotate: 'tangential',
             formatter: function (value) {
-              if (value === 0.875) {
+              if (value ===100) {
                 return '极热';
-              } else if (value === 0.625) {
+              } else if (value === 50) {
                 return '乐观';
-              } else if (value === 0.375) {
+              }  else if (value === 0) {
+                return '中性';
+              }else if (value === -50) {
                 return '谨慎';
-              } else if (value === 0.125) {
+              } else if (value === -100) {
                 return '冰点';
               }
               return '';
@@ -171,7 +175,7 @@ function  handleChart(){
           },
           data: [
             {
-              value: res.result.Score/100.0,
+              value: res.result.Score*0.2,
               name: '市场情绪'
             }
           ]
