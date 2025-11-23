@@ -88,9 +88,9 @@ func InitAnalyzeSentiment() {
 		if strutil.Trim(stock.Name) == "" {
 			continue
 		}
-		err := seg.AddToken(stock.Name, basefreq+500, "n")
+		err := seg.AddToken(stock.Name, basefreq+100, "n")
 		if strutil.Trim(stock.BKName) != "" {
-			err = seg.AddToken(stock.BKName, basefreq+500, "n")
+			err = seg.AddToken(stock.BKName, basefreq+100, "n")
 		}
 		if err != nil {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", stock.Name, err.Error())
@@ -102,9 +102,9 @@ func InitAnalyzeSentiment() {
 		if strutil.Trim(stock.Name) == "" {
 			continue
 		}
-		err := seg.AddToken(stock.Name, basefreq+500, "n")
+		err := seg.AddToken(stock.Name, basefreq+100, "n")
 		if strutil.Trim(stock.BKName) != "" {
-			err = seg.AddToken(stock.BKName, basefreq+500, "n")
+			err = seg.AddToken(stock.BKName, basefreq+100, "n")
 		}
 		if err != nil {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", stock.Name, err.Error())
@@ -121,7 +121,7 @@ func InitAnalyzeSentiment() {
 	tags := &[]models.Tags{}
 	db.Dao.Model(&models.Tags{}).Find(tags)
 	for _, tag := range *tags {
-		err := seg.AddToken(tag.Name, basefreq, "n")
+		err := seg.AddToken(tag.Name, basefreq+100, "n")
 		if err != nil {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", tag.Name, err.Error())
 		}
@@ -267,7 +267,7 @@ func countWordFrequencyWithWeight(text string) map[string]WordFreqWithWeight {
 	// 构建包含权重的结果
 	for word, frequency := range wordCount {
 		weight := getWordWeight(word)
-		if weight > 200 {
+		if weight > basefreq {
 			freqMap[word] = WordFreqWithWeight{
 				Word:      word,
 				Frequency: frequency,

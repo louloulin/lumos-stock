@@ -1031,9 +1031,9 @@ func (m MarketNewsApi) CailianpressWeb(searchWords string) *models.CailianpressW
 func (m MarketNewsApi) GetNews24HoursList(source string, limit int) *[]*models.Telegraph {
 	news := &[]*models.Telegraph{}
 	if source != "" {
-		db.Dao.Model(news).Preload("TelegraphTags").Where("source=? and created_at>?", source, time.Now().Add(-24*time.Hour)).Order("id desc,is_red desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Where("source=? and created_at>?", source, time.Now().Add(-24*time.Hour)).Order("created_at desc,is_red desc").Limit(limit).Find(news)
 	} else {
-		db.Dao.Model(news).Preload("TelegraphTags").Where("created_at>?", time.Now().Add(-24*time.Hour)).Order("id desc,is_red desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Where("created_at>?", time.Now().Add(-24*time.Hour)).Order("created_at desc,is_red desc").Limit(limit).Find(news)
 	}
 	// 内容去重
 	uniqueNews := make([]*models.Telegraph, 0)
