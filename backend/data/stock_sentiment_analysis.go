@@ -121,7 +121,7 @@ func InitAnalyzeSentiment() {
 	tags := &[]models.Tags{}
 	db.Dao.Model(&models.Tags{}).Find(tags)
 	for _, tag := range *tags {
-		err := seg.AddToken(tag.Name, basefreq+100, "n")
+		err := seg.AddToken(tag.Name, basefreq, "n")
 		if err != nil {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", tag.Name, err.Error())
 		}
@@ -141,7 +141,7 @@ func InitAnalyzeSentiment() {
 			k := strutil.SplitAndTrim(line, " ")
 			switch len(k) {
 			case 1:
-				err = seg.ReAddToken(k[0], 100)
+				err = seg.ReAddToken(k[0], basefreq)
 			case 2:
 				freq, _ := convertor.ToFloat(k[1])
 				err = seg.ReAddToken(k[0], freq)
