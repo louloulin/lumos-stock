@@ -117,63 +117,43 @@ A股 350 n
 科创50指数 330 n
 上证综指 350 n
 富时中国A50指数 340 n
-FTSE China A50 330 n
 恒生指数 340 n
-HSI 330 n
 恒生科技指数 340 n
 恒生国企指数 330 n
 H股指数 330 n
 # 美洲市场
 道琼斯工业平均指数 350 n
-DJIA 340 n
 标普500指数 350 n
-S&P 500 340 n
 纳斯达克综合指数 340 n
 纳斯达克100指数 340 n
-Nasdaq 100 330 n
 罗素2000指数 320 n
-Russell 2000 310 n
 标普400中型股指数 310 n
 标普600小型股指数 310 n
 纽约证交所综合指数 310 n
-NYSE Composite 300 n
 纳斯达克中国金龙指数 310 n
 # 欧洲市场
 德国DAX指数 330 n
-DAX 30 320 n
 法国CAC40指数 330 n
-CAC 40 320 n
 富时100指数 330 n
-FTSE 100 320 n
 欧元斯托克50指数 320 n
-Euro Stoxx 50 310 n
 英国富时250指数 310 n
-FTSE 250 300 n
 意大利富时MIB指数 310 n
-FTSE MIB 300 n
 西班牙IBEX 35指数 310 n
-IBEX 35 300 n
 # 亚太其他市场
 日经225指数 330 n
-Nikkei 225 320 n
 日经500指数 310 n
 韩国综合股价指数 320 n
 韩国kospi指数 320 n
 KOSPI 310 n
 澳洲标普200指数 310 n
-S&P/ASX 200 300 n
 印度孟买敏感指数 310 n
 Sensex 300 n
 印度Nifty 50指数 310 n
-Nifty 50 300 n
 # 全球综合指数
 MSCI指数 320 n
 MSCI全球指数 330 n
-MSCI World Index 320 n
 MSCI新兴市场指数 330 n
-MSCI Emerging Markets 320 n
 富时罗素全球指数 320 n
-FTSE Russell Global Index 310 n
 摩根大通全球债券指数 310 n
 全球股指 300 n
 发达市场指数 300 n
