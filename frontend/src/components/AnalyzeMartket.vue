@@ -1,6 +1,6 @@
 <script setup>
 
-import {AnalyzeSentimentWithFreqWeight} from "../../wailsjs/go/main/App";
+import {AnalyzeSentimentWithFreqWeight,GlobalStockIndexes} from "../../wailsjs/go/main/App";
 import * as echarts from "echarts";
 import {onMounted,onUnmounted, ref} from "vue";
 import _ from "lodash";
@@ -22,24 +22,53 @@ const { name,darkTheme,kDays ,chartHeight} = defineProps({
     default: false
   }
 })
+const common = ref([])
+const america = ref([])
+const europe = ref([])
+const asia = ref([])
+const china = ref([])
+const other = ref([])
+const globalStockIndexes = ref(null)
 const chartRef = ref(null);
 const gaugeChartRef = ref(null);
+const triggerAreas=ref(["main","extra","arrow"])
 let handleChartInterval=null
+let handleIndexInterval=null
 onMounted(() => {
   handleChart()
+  getIndex()
   handleChartInterval=setInterval(function () {
     handleChart()
   }, 1000 * 60)
+
+  handleIndexInterval=setInterval(function () {
+    getIndex()
+  }, 1000 * 2)
 })
 
 onUnmounted(()=>{
   clearInterval(handleChartInterval)
+  clearInterval(handleIndexInterval)
 })
 
+function getIndex() {
+  GlobalStockIndexes().then((res) => {
+    globalStockIndexes.value = res
+    common.value = res["common"]
+    america.value = res["america"]
+    europe.value = res["europe"]
+    asia.value = res["asia"]
+    other.value = res["other"]
+    china.value=asia.value.filter(function (item) {
+      //判断是否是中国
+      return ['上海',"深圳","香港","台湾","北京"].includes(item.location)
+    })
+  })
+}
 function  handleChart(){
   const formatUtil = echarts.format;
   AnalyzeSentimentWithFreqWeight("").then((res) => {
-    console.log(res)
+    //console.log(res)
     const treemapchart = echarts.init(chartRef.value);
     const gaugeChart=echarts.init(gaugeChartRef.value);
     let data = res['frequencies'].map(item => ({
@@ -117,7 +146,7 @@ function  handleChart(){
       },
       tooltip: {
         formatter: function (info) {
-          var value = info.value;
+          var value = info.value.toFixed(2);
           var frequency = info.data.frequency;
           var weight = info.data.weight;
           return [
@@ -235,7 +264,7 @@ function  handleChart(){
           data: [
             {
               value: res.result.Score*0.2,
-              name: '市场情绪'
+              name: '市场情绪强弱'
             }
           ]
         }
@@ -247,14 +276,26 @@ function  handleChart(){
 </script>
 
 <template>
-  <n-grid :cols="24" :y-gap="0">
-    <n-gi span="6">
-      <div ref="gaugeChartRef" style="width: 100%;height: auto;--wails-draggable:no-drag" :style="{height:chartHeight+'px'}" ></div>
-    </n-gi>
-    <n-gi span="18">
-      <div ref="chartRef" style="width: 100%;height: auto;--wails-draggable:no-drag" :style="{height:chartHeight+'px'}" ></div>
-    </n-gi>
-  </n-grid>
+  <n-collapse :trigger-areas="triggerAreas" :default-expanded-names="['1']" display-directive="show">
+    <n-collapse-item  name="1" >
+      <template #header>
+          <n-flex>
+            <n-tag  size="small" :bordered="false" v-for="(item, index) in china" :type="item.zdf>0?'error':'success'">  {{item.name}} {{item.zxj}} {{item.zdf}}%</n-tag>
+          </n-flex>
+      </template>
+      <template #header-extra>
+        主要股指
+      </template>
+      <n-grid :cols="24" :y-gap="0">
+        <n-gi span="6">
+          <div ref="gaugeChartRef" style="width: 100%;height: auto;--wails-draggable:no-drag" :style="{height:chartHeight+'px'}" ></div>
+        </n-gi>
+        <n-gi span="18">
+          <div ref="chartRef" style="width: 100%;height: auto;--wails-draggable:no-drag" :style="{height:chartHeight+'px'}" ></div>
+        </n-gi>
+      </n-grid>
+    </n-collapse-item>
+  </n-collapse>
 </template>
 
 <style scoped>

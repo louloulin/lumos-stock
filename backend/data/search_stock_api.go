@@ -37,10 +37,10 @@ func (s SearchStockApi) SearchStock(pageSize int) map[string]any {
 				"matchWord": "",
 				"timestamp": "%d",
 				"shareToGuba": false,
-				"requestId": "RMd3Y76AJI98axPvdhdbKvbBDVwLlUK61761559950168",
+				"requestId": "",
 				"needCorrect": true,
 				"removedConditionIdList": [],
-				"xcId": "xc0d61279aad33008260",
+				"xcId": "",
 				"ownSelectAll": false,
 				"dxInfo": [],
 				"extraCondition": ""

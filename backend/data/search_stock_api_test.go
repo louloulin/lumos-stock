@@ -4,13 +4,21 @@ import (
 	"encoding/json"
 	"go-stock/backend/db"
 	"go-stock/backend/logger"
+	"math"
 	"testing"
 
 	"github.com/duke-git/lancet/v2/convertor"
+	"github.com/duke-git/lancet/v2/random"
 )
 
 func TestSearchStock(t *testing.T) {
 	db.Init("../../data/stock.db")
+
+	e := convertor.ToString(math.Floor(float64(9*random.RandFloat(0, 1, 12) + 1)))
+	for i := 0; i < 19; i++ {
+		e += convertor.ToString(math.Floor(float64(9 * random.RandFloat(0, 1, 12))))
+	}
+	logger.SugaredLogger.Infof("e:%s", e)
 
 	res := NewSearchStockApi("量比大于2，基本面优秀，2025年三季报已披露，主力连续3日净流入，非创业板非科创板非ST").SearchStock(20)
 	logger.SugaredLogger.Infof("res:%+v", res)
