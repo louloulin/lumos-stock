@@ -26,7 +26,8 @@ const common = ref([])
 const america = ref([])
 const europe = ref([])
 const asia = ref([])
-const china = ref([])
+const mainIndex = ref([])
+const chinaIndex = ref([])
 const other = ref([])
 const globalStockIndexes = ref(null)
 const chartRef = ref(null);
@@ -59,10 +60,16 @@ function getIndex() {
     europe.value = res["europe"]
     asia.value = res["asia"]
     other.value = res["other"]
-    china.value=asia.value.filter(function (item) {
-      //判断是否是中国
+    mainIndex.value=asia.value.filter(function (item) {
+      return ['上海',"深圳","香港","台湾","北京","东京","首尔","纽约","纳斯达克"].includes(item.location)
+    }).concat(america.value.filter(function (item) {
+      return ['上海',"深圳","香港","台湾","北京","东京","首尔","纽约","纳斯达克"].includes(item.location)
+    }))
+
+    chinaIndex.value=asia.value.filter(function (item) {
       return ['上海',"深圳","香港","台湾","北京"].includes(item.location)
     })
+
   })
 }
 function  handleChart(){
@@ -280,7 +287,7 @@ function  handleChart(){
     <n-collapse-item  name="1" >
       <template #header>
           <n-flex>
-            <n-tag  size="small" :bordered="false" v-for="(item, index) in china" :type="item.zdf>0?'error':'success'">  {{item.name}} {{item.zxj}} {{item.zdf}}%</n-tag>
+              <n-tag  size="small" :bordered="false" v-for="(item, index) in mainIndex" :type="item.zdf>0?'error':'success'">  {{item.name}} {{item.zxj}}   <n-number-animation :precision="2" :from="0" :to="item.zdf"/>%</n-tag>
           </n-flex>
       </template>
       <template #header-extra>

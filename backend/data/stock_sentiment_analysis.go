@@ -119,9 +119,9 @@ func InitAnalyzeSentiment() {
 	//	}
 	//}
 	tags := &[]models.Tags{}
-	db.Dao.Model(&models.Tags{}).Find(tags)
+	db.Dao.Model(&models.Tags{}).Where("type = ?", "subject").Find(tags)
 	for _, tag := range *tags {
-		err := seg.AddToken(tag.Name, basefreq, "n")
+		err := seg.ReAddToken(tag.Name, basefreq+100, "n")
 		if err != nil {
 			logger.SugaredLogger.Errorf("添加%s失败:%s", tag.Name, err.Error())
 		}
