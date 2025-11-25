@@ -45,6 +45,7 @@ const panelHeight = ref(window.innerHeight - 240)
 
 const telegraphList = ref([])
 const sinaNewsList = ref([])
+const foreignNewsList = ref([])
 const common = ref([])
 const america = ref([])
 const europe = ref([])
@@ -54,6 +55,7 @@ const globalStockIndexes = ref(null)
 const summaryModal = ref(false)
 const summaryBTN = ref(true)
 const darkTheme = ref(false)
+const httpProxyEnabled = ref(false)
 const theme = computed(() => {
   return darkTheme ? 'dark' : 'light'
 })
@@ -96,6 +98,7 @@ onBeforeMount(() => {
   GetConfig().then(result => {
     summaryBTN.value = result.openAiEnable
     darkTheme.value = result.darkTheme
+    httpProxyEnabled.value = result.httpProxyEnabled
   })
   GetPromptTemplates("", "").then(res => {
     promptTemplates.value = res
@@ -107,12 +110,14 @@ onBeforeMount(() => {
     aiConfigs.value = res
     aiConfigId.value = res[0].ID
   })
-
   GetTelegraphList("财联社电报").then((res) => {
     telegraphList.value = res
   })
   GetTelegraphList("新浪财经").then((res) => {
     sinaNewsList.value = res
+  })
+  GetTelegraphList("外媒").then((res) => {
+    foreignNewsList.value = res
   })
   getIndex();
   industryRank();
@@ -162,6 +167,14 @@ EventsOn("newSinaNews", (data) => {
     sinaNewsList.value.pop()
   }
   sinaNewsList.value.unshift(...data)
+  }
+})
+EventsOn("tradingViewNews", (data) => {
+  if (data!=null) {
+    for (let i = 0; i < data.length; i++) {
+      foreignNewsList.value.pop()
+    }
+    foreignNewsList.value.unshift(...data)
   }
 })
 
@@ -324,6 +337,9 @@ function ReFlesh(source) {
     if (source === "新浪财经") {
       sinaNewsList.value = res
     }
+    if (source === "外媒") {
+      foreignNewsList.value = res
+    }
   })
 }
 </script>
@@ -337,13 +353,17 @@ function ReFlesh(source) {
             <AnalyzeMartket :dark-theme="darkTheme" :chart-height="300" :kDays="1" :name="'最近24小时热词'" />
           </n-gi>
           <n-gi>
-            <n-grid :cols="2" :y-gap="0">
+            <n-grid :cols="httpProxyEnabled?3:2" :y-gap="0">
               <n-gi>
                 <news-list :newsList="telegraphList" :header-title="'财联社电报'" @update:message="ReFlesh"></news-list>
               </n-gi>
               <n-gi>
                 <news-list :newsList="sinaNewsList" :header-title="'新浪财经'" @update:message="ReFlesh"></news-list>
               </n-gi>
+              <n-gi v-if="httpProxyEnabled">
+                <news-list :newsList="foreignNewsList" :header-title="'外媒'" @update:message="ReFlesh"></news-list>
+              </n-gi>
+
             </n-grid>
           </n-gi>
         </n-grid>

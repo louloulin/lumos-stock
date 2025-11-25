@@ -232,15 +232,16 @@ type Prompt struct {
 type Telegraph struct {
 	gorm.Model
 	Time            string          `json:"time"`
-	DataTime        *time.Time      `json:"dataTime"`
-	Content         string          `json:"content"`
+	DataTime        *time.Time      `json:"dataTime" gorm:"index"`
+	Title           string          `json:"title" gorm:"index"`
+	Content         string          `json:"content" gorm:"index"`
 	SubjectTags     []string        `json:"subjects" gorm:"-:all"`
 	StocksTags      []string        `json:"stocks" gorm:"-:all"`
-	IsRed           bool            `json:"isRed"`
+	IsRed           bool            `json:"isRed" gorm:"index"`
 	Url             string          `json:"url"`
-	Source          string          `json:"source"`
+	Source          string          `json:"source" gorm:"index"`
 	TelegraphTags   []TelegraphTags `json:"tags" gorm:"-:migration;foreignKey:TelegraphId"`
-	SentimentResult string          `json:"sentimentResult"`
+	SentimentResult string          `json:"sentimentResult" gorm:"index"`
 }
 type TelegraphTags struct {
 	gorm.Model
@@ -330,6 +331,22 @@ type TVNews struct {
 		Name   string `json:"name"`
 		LogoId string `json:"logo_id"`
 	} `json:"provider"`
+}
+type TVNewsDetail struct {
+	ShortDescription string `json:"shortDescription"`
+	Tags             []struct {
+		Title string `json:"title"`
+		Args  []struct {
+			Id    string `json:"id"`
+			Value string `json:"value"`
+		} `json:"args"`
+	} `json:"tags"`
+	Copyright string `json:"copyright"`
+	Id        string `json:"id"`
+	Title     string `json:"title"`
+	Published int    `json:"published"`
+	Urgency   int    `json:"urgency"`
+	StoryPath string `json:"storyPath"`
 }
 
 type XUEQIUHot struct {

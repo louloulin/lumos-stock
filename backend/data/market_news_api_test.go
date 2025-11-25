@@ -21,7 +21,12 @@ import (
 
 func TestGetSinaNews(t *testing.T) {
 	db.Init("../../data/stock.db")
-	NewMarketNewsApi().GetSinaNews(30)
+	InitAnalyzeSentiment()
+	news := NewMarketNewsApi().GetSinaNews(30)
+	for i, telegraph := range *news {
+		logger.SugaredLogger.Debugf("key: %+v, value: %+v", i, telegraph)
+
+	}
 	//NewMarketNewsApi().GetNewTelegraph(30)
 
 }
@@ -122,10 +127,8 @@ func TestEMDictCode(t *testing.T) {
 
 func TestTradingViewNews(t *testing.T) {
 	db.Init("../../data/stock.db")
-	resp := NewMarketNewsApi().TradingViewNews()
-	for _, a := range *resp {
-		logger.SugaredLogger.Debugf("value: %+v", a)
-	}
+	InitAnalyzeSentiment()
+	NewMarketNewsApi().TradingViewNews()
 }
 
 func TestXUEQIUHotStock(t *testing.T) {

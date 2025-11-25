@@ -8,6 +8,7 @@ import (
 	"go-stock/backend/logger"
 	"go-stock/backend/models"
 	"go-stock/backend/util"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -53,7 +54,7 @@ func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) *[]models.Telegraph {
 		for _, v := range rollData {
 			news := v.(map[string]any)
 			ctime, _ := convertor.ToInt(news["ctime"])
-			dataTime := time.Unix(ctime, 0)
+			dataTime := time.Unix(ctime, 0).Local()
 			logger.SugaredLogger.Debugf("dataTime: %s", dataTime)
 			telegraph := models.Telegraph{
 				Content:         news["content"].(string),
@@ -209,9 +210,9 @@ func (m MarketNewsApi) GetNewsList2(source string, limit int) *[]*models.Telegra
 func (m MarketNewsApi) GetTelegraphList(source string) *[]*models.Telegraph {
 	news := &[]*models.Telegraph{}
 	if source != "" {
-		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("id desc").Limit(20).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("data_time desc,time desc").Limit(50).Find(news)
 	} else {
-		db.Dao.Model(news).Preload("TelegraphTags").Order("id desc").Limit(20).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Order("data_time desc,time desc").Limit(50).Find(news)
 	}
 	for _, item := range *news {
 		tags := &[]models.Tags{}
@@ -268,6 +269,10 @@ func (m MarketNewsApi) GetSinaNews(crawlTimeOut uint) *[]models.Telegraph {
 			//logger.SugaredLogger.Infof("%s:%s", data["create_time"], data["rich_text"])
 			telegraph.Content = data["rich_text"].(string)
 			telegraph.Time = strings.Split(data["create_time"].(string), " ")[1]
+			dataTime, _ := time.ParseInLocation("2006-01-02 15:04:05", data["create_time"].(string), time.Local)
+			if &dataTime != nil {
+				telegraph.DataTime = &dataTime
+			}
 			tags := data["tag"].([]any)
 			telegraph.SubjectTags = lo.Map(tags, func(tagItem any, index int) string {
 				name := tagItem.(map[string]any)["name"].(string)
@@ -286,7 +291,7 @@ func (m MarketNewsApi) GetSinaNews(crawlTimeOut uint) *[]models.Telegraph {
 			if telegraph.Content != "" {
 				telegraph.SentimentResult = AnalyzeSentiment(telegraph.Content).Description
 				cnt := int64(0)
-				db.Dao.Model(telegraph).Where("time=? and source=?", telegraph.Time, telegraph.Source).Count(&cnt)
+				db.Dao.Model(telegraph).Where("content=? and source=?", telegraph.Content, telegraph.Source).Count(&cnt)
 				if cnt == 0 {
 					db.Dao.Create(&telegraph)
 					telegraphs = append(telegraphs, telegraph)
@@ -640,14 +645,16 @@ func (m MarketNewsApi) EMDictCode(code string, cache *freecache.Cache) []any {
 	return respMap["data"].([]any)
 }
 
-func (m MarketNewsApi) TradingViewNews() *[]models.TVNews {
+func (m MarketNewsApi) TradingViewNews() *[]models.Telegraph {
 	client := resty.New()
 	config := GetSettingConfig()
 	if config.HttpProxyEnabled && config.HttpProxy != "" {
 		client.SetProxy(config.HttpProxy)
 	}
 	TVNews := &[]models.TVNews{}
-	url := "https://news-mediator.tradingview.com/news-flow/v2/news?filter=lang:zh-Hans&filter=provider:panews,reuters&client=screener&streaming=false"
+	news := &[]models.Telegraph{}
+	//	url := "https://news-mediator.tradingview.com/news-flow/v2/news?filter=lang:zh-Hans&filter=area:WLD&client=screener&streaming=false"
+	url := "https://news-mediator.tradingview.com/news-flow/v2/news?filter=area%3AWLD&filter=lang%3Azh-Hans&client=screener&streaming=false"
 	resp, err := client.SetTimeout(time.Duration(5)*time.Second).R().
 		SetHeader("Host", "news-mediator.tradingview.com").
 		SetHeader("Origin", "https://cn.tradingview.com").
@@ -656,19 +663,78 @@ func (m MarketNewsApi) TradingViewNews() *[]models.TVNews {
 		Get(url)
 	if err != nil {
 		logger.SugaredLogger.Errorf("TradingViewNews err:%s", err.Error())
-		return TVNews
+		return news
 	}
 	respMap := map[string]any{}
 	err = json.Unmarshal(resp.Body(), &respMap)
 	if err != nil {
-		return TVNews
+		return news
 	}
 	items, err := json.Marshal(respMap["items"])
 	if err != nil {
-		return TVNews
+		return news
 	}
 	json.Unmarshal(items, TVNews)
-	return TVNews
+
+	for _, a := range *TVNews {
+		detail := NewMarketNewsApi().TradingViewNewsDetail(a.Id)
+		dataTime := time.Unix(int64(a.Published), 0).Local()
+		description := ""
+		sentimentResult := ""
+		if detail != nil {
+			description = detail.ShortDescription
+			sentimentResult = AnalyzeSentiment(description).Description
+		}
+		if a.Title == "" {
+			continue
+		}
+		telegraph := &models.Telegraph{
+			Title:           a.Title,
+			Content:         description,
+			DataTime:        &dataTime,
+			IsRed:           false,
+			Time:            dataTime.Format("15:04:05"),
+			Source:          "外媒",
+			Url:             fmt.Sprintf("https://cn.tradingview.com/news/%s", a.Id),
+			SentimentResult: sentimentResult,
+		}
+		cnt := int64(0)
+		db.Dao.Model(telegraph).Where("time=? and content=? and source=?", telegraph.Time, telegraph.Content, "外媒").Count(&cnt)
+		if cnt > 0 {
+			continue
+		}
+		db.Dao.Model(&models.Telegraph{}).Where("content=? and source=?", description, "外媒").FirstOrCreate(&telegraph)
+		*news = append(*news, *telegraph)
+	}
+	return news
+}
+func (m MarketNewsApi) TradingViewNewsDetail(id string) *models.TVNewsDetail {
+	//https://news-headlines.tradingview.com/v3/story?id=panews%3A9be7cf057e3f9%3A0&lang=zh-Hans
+	newsDetail := &models.TVNewsDetail{}
+	newsUrl := fmt.Sprintf("https://news-headlines.tradingview.com/v3/story?id=%s&lang=zh-Hans", url.QueryEscape(id))
+
+	client := resty.New()
+	config := GetSettingConfig()
+	if config.HttpProxyEnabled && config.HttpProxy != "" {
+		client.SetProxy(config.HttpProxy)
+	}
+	request := client.SetTimeout(time.Duration(3) * time.Second).R()
+	_, err := request.
+		SetHeader("Host", "news-headlines.tradingview.com").
+		SetHeader("Origin", "https://cn.tradingview.com").
+		SetHeader("Referer", "https://cn.tradingview.com/").
+		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0").
+		//SetHeader("TE", "trailers").
+		//SetHeader("Priority", "u=4").
+		//SetHeader("Connection", "keep-alive").
+		SetResult(newsDetail).
+		Get(newsUrl)
+	if err != nil {
+		logger.SugaredLogger.Errorf("TradingViewNewsDetail err:%s", err.Error())
+		return newsDetail
+	}
+	logger.SugaredLogger.Infof("resp:%+v", newsDetail)
+	return newsDetail
 }
 
 func (m MarketNewsApi) XUEQIUHotStock(size int, marketType string) *[]models.HotItem {

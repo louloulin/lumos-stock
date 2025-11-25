@@ -29,11 +29,19 @@ const updateMessage = () => {
       </n-flex>
     </template>
     <n-list-item v-for="item in newsList">
-      <n-space justify="start">
+      <n-space justify="start" >
         <n-text justify="start" :bordered="false" :type="item.isRed?'error':'info'">
           <n-tag size="small" :type="item.isRed?'error':'warning'" :bordered="false"> {{ item.time }}</n-tag>
-          {{ item.content }}
+          <n-gradient-text :size="14" :type="'warning'" :bordered="false">{{ item.title }}</n-gradient-text> <n-text :type="item.isRed?'error':'info'">{{ item.content }}</n-text>
         </n-text>
+<!--        <n-collapse v-if="item.title">-->
+<!--          <n-collapse-item :title="item.title" :name="item.title">-->
+<!--            <n-text justify="start" :bordered="false" :type="item.isRed?'error':'info'">-->
+<!--              <n-tag size="small" :type="item.isRed?'error':'warning'" :bordered="false"> {{ item.time }}</n-tag>-->
+<!--              {{ item.content }}-->
+<!--            </n-text>-->
+<!--          </n-collapse-item>-->
+<!--        </n-collapse>-->
       </n-space>
       <n-space v-if="item.subjects" style="margin-top: 2px">
         <n-tag :bordered="false" type="success" size="small" v-for="sub in item.subjects">
