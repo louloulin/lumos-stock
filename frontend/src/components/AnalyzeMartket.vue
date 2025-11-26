@@ -287,7 +287,14 @@ function  handleChart(){
     <n-collapse-item  name="1" >
       <template #header>
           <n-flex>
-              <n-tag  size="small" :bordered="false" v-for="(item, index) in mainIndex" :type="item.zdf>0?'error':'success'">  {{item.name}} {{item.zxj}}   <n-number-animation :precision="2" :from="0" :to="item.zdf"/>%</n-tag>
+              <n-tag size="small" :bordered="false" v-for="(item, index) in mainIndex" :type="item.zdf>0?'error':'success'">
+                <n-flex>
+                  <n-image :width="20" :src="item.img" />
+                  <n-text style="font-size: 14px" :type="item.zdf>0?'error':'success'">{{item.name}}&nbsp;{{item.zxj}}</n-text>
+                  <n-number-animation :precision="2" :from="0" :to="item.zdf" style="font-size: 14px"/>
+                  <n-text style="margin-left: -12px;font-size: 14px" :type="item.zdf>0?'error':'success'">%</n-text>
+                </n-flex>
+              </n-tag>
           </n-flex>
       </template>
       <template #header-extra>
