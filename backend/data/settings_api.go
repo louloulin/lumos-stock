@@ -37,6 +37,7 @@ type Settings struct {
 	HttpProxy              string `json:"httpProxy"`
 	HttpProxyEnabled       bool   `json:"httpProxyEnabled"`
 	EnableAgent            bool   `json:"enableAgent"`
+	QgqpBId                string `json:"qgqpBId" gorm:"column:qgqp_b_id"`
 }
 
 func (receiver Settings) TableName() string {
@@ -108,6 +109,7 @@ func UpdateConfig(s *SettingConfig) string {
 			"http_proxy":                 s.HttpProxy,
 			"http_proxy_enabled":         s.HttpProxyEnabled,
 			"enable_agent":               s.EnableAgent,
+			"qgqp_b_id":                  s.QgqpBId,
 		})
 
 		//更新AiConfig

@@ -394,6 +394,7 @@ export namespace data {
 	    httpProxy: string;
 	    httpProxyEnabled: boolean;
 	    enableAgent: boolean;
+	    qgqpBId: string;
 	    aiConfigs: AIConfig[];
 	
 	    static createFrom(source: any = {}) {
@@ -430,6 +431,7 @@ export namespace data {
 	        this.httpProxy = source["httpProxy"];
 	        this.httpProxyEnabled = source["httpProxyEnabled"];
 	        this.enableAgent = source["enableAgent"];
+	        this.qgqpBId = source["qgqpBId"];
 	        this.aiConfigs = this.convertValues(source["aiConfigs"], AIConfig);
 	    }
 	

@@ -62,7 +62,7 @@ func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) *[]models.Telegraph {
 				DataTime:        &dataTime,
 				Url:             news["shareurl"].(string),
 				Source:          "财联社电报",
-				IsRed:           GetLevel(news["level"].(string)),
+				IsRed:           (news["level"].(string)) != "C",
 				SentimentResult: AnalyzeSentiment(news["content"].(string)).Description,
 			}
 			cnt := int64(0)
@@ -96,9 +96,6 @@ func (m MarketNewsApi) TelegraphList(crawlTimeOut int64) *[]models.Telegraph {
 	}
 
 	return &telegraphs
-}
-func GetLevel(s string) bool {
-	return s > "C"
 }
 
 func (m MarketNewsApi) GetNewTelegraph(crawlTimeOut int64) *[]models.Telegraph {
@@ -168,9 +165,9 @@ func (m MarketNewsApi) GetNewTelegraph(crawlTimeOut int64) *[]models.Telegraph {
 func (m MarketNewsApi) GetNewsList(source string, limit int) *[]*models.Telegraph {
 	news := &[]*models.Telegraph{}
 	if source != "" {
-		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("id desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("data_time desc,time desc").Limit(limit).Find(news)
 	} else {
-		db.Dao.Model(news).Preload("TelegraphTags").Order("id desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Order("data_time desc,time desc").Limit(limit).Find(news)
 	}
 	for _, item := range *news {
 		tags := &[]models.Tags{}
@@ -189,9 +186,9 @@ func (m MarketNewsApi) GetNewsList2(source string, limit int) *[]*models.Telegra
 	NewMarketNewsApi().TelegraphList(30)
 	news := &[]*models.Telegraph{}
 	if source != "" {
-		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("id desc,is_red desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Where("source=?", source).Order("data_time desc,is_red desc").Limit(limit).Find(news)
 	} else {
-		db.Dao.Model(news).Preload("TelegraphTags").Order("id desc,is_red desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Order("data_time desc,is_red desc").Limit(limit).Find(news)
 	}
 	for _, item := range *news {
 		tags := &[]models.Tags{}
@@ -676,7 +673,10 @@ func (m MarketNewsApi) TradingViewNews() *[]models.Telegraph {
 	}
 	json.Unmarshal(items, TVNews)
 
-	for _, a := range *TVNews {
+	for i, a := range *TVNews {
+		if i > 10 {
+			break
+		}
 		detail := NewMarketNewsApi().TradingViewNewsDetail(a.Id)
 		dataTime := time.Unix(int64(a.Published), 0).Local()
 		description := ""
@@ -699,11 +699,11 @@ func (m MarketNewsApi) TradingViewNews() *[]models.Telegraph {
 			SentimentResult: sentimentResult,
 		}
 		cnt := int64(0)
-		db.Dao.Model(telegraph).Where("time=? and content=? and source=?", telegraph.Time, telegraph.Content, "外媒").Count(&cnt)
+		db.Dao.Model(telegraph).Where("time=? and title=? and source=?", telegraph.Time, telegraph.Title, "外媒").Count(&cnt)
 		if cnt > 0 {
 			continue
 		}
-		db.Dao.Model(&models.Telegraph{}).Where("content=? and source=?", description, "外媒").FirstOrCreate(&telegraph)
+		db.Dao.Model(&models.Telegraph{}).Where("time=? and title=? and source=?", telegraph.Time, telegraph.Title, "外媒").FirstOrCreate(&telegraph)
 		*news = append(*news, *telegraph)
 	}
 	return news
@@ -1097,9 +1097,9 @@ func (m MarketNewsApi) CailianpressWeb(searchWords string) *models.CailianpressW
 func (m MarketNewsApi) GetNews24HoursList(source string, limit int) *[]*models.Telegraph {
 	news := &[]*models.Telegraph{}
 	if source != "" {
-		db.Dao.Model(news).Preload("TelegraphTags").Where("source=? and created_at>?", source, time.Now().Add(-24*time.Hour)).Order("created_at desc,is_red desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Where("source=? and created_at>?", source, time.Now().Add(-24*time.Hour)).Order("data_time desc,is_red desc").Limit(limit).Find(news)
 	} else {
-		db.Dao.Model(news).Preload("TelegraphTags").Where("created_at>?", time.Now().Add(-24*time.Hour)).Order("created_at desc,is_red desc").Limit(limit).Find(news)
+		db.Dao.Model(news).Preload("TelegraphTags").Where("created_at>?", time.Now().Add(-24*time.Hour)).Order("data_time desc,is_red desc").Limit(limit).Find(news)
 	}
 	// 内容去重
 	uniqueNews := make([]*models.Telegraph, 0)

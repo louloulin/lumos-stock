@@ -250,5 +250,6 @@ func TestGetNewsList2(t *testing.T) {
 
 func TestTelegraphList(t *testing.T) {
 	db.Init("../../data/stock.db")
+	InitAnalyzeSentiment()
 	NewMarketNewsApi().TelegraphList(30)
 }

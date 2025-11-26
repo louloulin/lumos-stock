@@ -46,6 +46,7 @@ const formValue = ref({
   httpProxy:"",
   httpProxyEnabled:false,
   enableAgent: false,
+  qgqpBId: '',
 })
 
 // 添加一个新的AI配置到列表
@@ -105,6 +106,7 @@ onMounted(() => {
     formValue.value.httpProxy=res.httpProxy;
     formValue.value.httpProxyEnabled=res.httpProxyEnabled;
     formValue.value.enableAgent = res.enableAgent;
+    formValue.value.qgqpBId = res.qgqpBId;
 
   })
 
@@ -145,6 +147,7 @@ function saveConfig() {
     httpProxy:formValue.value.httpProxy,
     httpProxyEnabled:formValue.value.httpProxyEnabled,
     enableAgent: formValue.value.enableAgent,
+    qgqpBId: formValue.value.qgqpBId
   })
 
   if (config.sponsorCode) {
@@ -235,6 +238,7 @@ function importConfig() {
       formValue.value.httpProxy=config.httpProxy
       formValue.value.httpProxyEnabled=config.httpProxyEnabled
       formValue.value.enableAgent = config.enableAgent
+      formValue.value.qgqpBId = config.qgqpBId
     };
     reader.readAsText(file);
   };
@@ -327,6 +331,9 @@ function deletePrompt(ID) {
             </n-form-item-gi>
             <n-form-item-gi :span="3" label="AI智能体：" path="enableAgent">
               <n-switch v-model:value="formValue.enableAgent"/>
+            </n-form-item-gi>
+            <n-form-item-gi :span="11" label="东财唯一标识：" path="qgqpBId">
+              <n-input type="text" placeholder="东财唯一标识" v-model:value="formValue.qgqpBId" clearable/>
             </n-form-item-gi>
 
             <n-form-item-gi :span="11" label="赞助码：" path="sponsorCode">

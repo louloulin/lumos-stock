@@ -3,13 +3,14 @@ package tools
 import (
 	"context"
 	"encoding/json"
+	"go-stock/backend/data"
+	"go-stock/backend/logger"
+	"strings"
+
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
 	"github.com/duke-git/lancet/v2/random"
 	"github.com/tidwall/gjson"
-	"go-stock/backend/data"
-	"go-stock/backend/logger"
-	"strings"
 )
 
 // @Author spark
@@ -51,7 +52,7 @@ func (q QueryMarketNews) InvokableRun(ctx context.Context, argumentsInJSON strin
 		})
 	}
 
-	news := data.NewMarketNewsApi().GetNewsList("财联社电报", random.RandInt(100, 500))
+	news := data.NewMarketNewsApi().GetNewsList("", random.RandInt(100, 500))
 	messageText := strings.Builder{}
 	for _, telegraph := range *news {
 		messageText.WriteString("## " + telegraph.Time + ":" + "\n")

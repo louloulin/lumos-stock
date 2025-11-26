@@ -21,6 +21,13 @@ func NewSearchStockApi(words string) *SearchStockApi {
 	return &SearchStockApi{words: words}
 }
 func (s SearchStockApi) SearchStock(pageSize int) map[string]any {
+	qgqpBId := NewSettingsApi().Config.QgqpBId
+	if qgqpBId == "" {
+		return map[string]any{
+			"code":    -1,
+			"message": "请先获取东财用户标识（qgqp_b_id）：打开浏览器,访问东财网站，按F12打开开发人员工具-》网络面板，随便点开一个请求，复制请求cookie中qgqp_b_id对应的值。保存到设置中的东财唯一标识输入框",
+		}
+	}
 	url := "https://np-tjxg-g.eastmoney.com/api/smart-tag/stock/v3/pw/search-code"
 	resp, err := resty.New().SetTimeout(time.Duration(30)*time.Second).R().
 		SetHeader("Host", "np-tjxg-g.eastmoney.com").
@@ -32,7 +39,7 @@ func (s SearchStockApi) SearchStock(pageSize int) map[string]any {
 				"keyWord": "%s",
 				"pageSize": %d,
 				"pageNo": 1,
-				"fingerprint": "02efa8944b1f90fbfe050e1e695a480d",
+				"fingerprint": "%s",
 				"gids": [],
 				"matchWord": "",
 				"timestamp": "%d",
@@ -44,10 +51,13 @@ func (s SearchStockApi) SearchStock(pageSize int) map[string]any {
 				"ownSelectAll": false,
 				"dxInfo": [],
 				"extraCondition": ""
-				}`, s.words, pageSize, time.Now().Unix())).Post(url)
+				}`, s.words, pageSize, qgqpBId, time.Now().Unix())).Post(url)
 	if err != nil {
 		logger.SugaredLogger.Errorf("SearchStock-err:%+v", err)
-		return map[string]any{}
+		return map[string]any{
+			"code":    -1,
+			"message": err.Error(),
+		}
 	}
 	respMap := map[string]any{}
 	json.Unmarshal(resp.Body(), &respMap)

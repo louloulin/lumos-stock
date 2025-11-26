@@ -125,7 +125,12 @@ function Search() {
       // 计算并设置表格宽度
       tableScrollX.value = calculateTableWidth(columns.value);
     } else {
-      message.error(res.msg)
+      if(res.msg){
+        message.error(res.msg)
+      }
+      if(res.message){
+        message.error(res.message)
+      }
     }
   }).catch(err => {
     message.error(err)

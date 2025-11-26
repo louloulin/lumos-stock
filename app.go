@@ -458,7 +458,7 @@ func (a *App) domReady(ctx context.Context) {
 			a.cronEntrys["newSinaNews"] = entryIDSina
 		}
 
-		entryIDTradingViewNews, err := a.cron.AddFunc(fmt.Sprintf("@every %ds", interval+60*5), func() {
+		entryIDTradingViewNews, err := a.cron.AddFunc(fmt.Sprintf("@every %ds", interval+10), func() {
 			news := data.NewMarketNewsApi().TradingViewNews()
 			if config.EnablePushNews {
 				go a.NewsPush(news)
@@ -1375,9 +1375,9 @@ func (a *App) GetTelegraphList(source string) *[]*models.Telegraph {
 
 func (a *App) ReFleshTelegraphList(source string) *[]*models.Telegraph {
 	//data.NewMarketNewsApi().GetNewTelegraph(30)
-	data.NewMarketNewsApi().TelegraphList(30)
-	data.NewMarketNewsApi().GetSinaNews(30)
-	data.NewMarketNewsApi().TradingViewNews()
+	go data.NewMarketNewsApi().TelegraphList(30)
+	go data.NewMarketNewsApi().GetSinaNews(30)
+	go data.NewMarketNewsApi().TradingViewNews()
 	telegraphs := data.NewMarketNewsApi().GetTelegraphList(source)
 	return telegraphs
 }
