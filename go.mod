@@ -25,9 +25,9 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/wailsapp/wails/v2 v2.10.1
 	go.uber.org/zap v1.27.0
-	golang.org/x/net v0.38.0
-	golang.org/x/sys v0.36.0
-	golang.org/x/text v0.26.0
+	golang.org/x/net v0.47.0
+	golang.org/x/sys v0.38.0
+	golang.org/x/text v0.31.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/gorm v1.25.12
 	gorm.io/plugin/dbresolver v1.5.3
@@ -119,7 +119,7 @@ require (
 	github.com/yargevad/filepathx v1.0.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/crypto v0.44.0 // indirect
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
