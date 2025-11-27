@@ -1,13 +1,14 @@
 package db
 
 import (
+	"log"
+	"os"
+	"time"
+
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/plugin/dbresolver"
-	"log"
-	"os"
-	"time"
 )
 
 var Dao *gorm.DB
@@ -26,7 +27,7 @@ func Init(sqlitePath string) {
 	var openDb *gorm.DB
 	var err error
 	if sqlitePath == "" {
-		sqlitePath = "data/stock.db?cache=shared&mode=rwc&_journal_mode=WAL"
+		sqlitePath = "data/stock.db?cache_size=-524288&mode=rwc&_journal_mode=WAL"
 	}
 	openDb, err = gorm.Open(sqlite.Open(sqlitePath), &gorm.Config{
 		Logger:                                   dbLogger,
@@ -48,8 +49,8 @@ func Init(sqlitePath string) {
 	if err != nil {
 		log.Fatalf("openDb.DB error is  %s", err.Error())
 	}
-	dbCon.SetMaxIdleConns(10)
-	dbCon.SetMaxOpenConns(100)
+	dbCon.SetMaxIdleConns(4)
+	dbCon.SetMaxOpenConns(10)
 	dbCon.SetConnMaxLifetime(time.Hour)
 	Dao = openDb
 }
