@@ -27,7 +27,7 @@ func Init(sqlitePath string) {
 	var openDb *gorm.DB
 	var err error
 	if sqlitePath == "" {
-		sqlitePath = "data/stock.db?cache_size=-524288&mode=rwc&_journal_mode=WAL"
+		sqlitePath = "data/stock.db?cache_size=-524288&journal_mode=WAL"
 	}
 	openDb, err = gorm.Open(sqlite.Open(sqlitePath), &gorm.Config{
 		Logger:                                   dbLogger,
