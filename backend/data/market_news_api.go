@@ -652,7 +652,7 @@ func (m MarketNewsApi) TradingViewNews() *[]models.Telegraph {
 	news := &[]models.Telegraph{}
 	//	url := "https://news-mediator.tradingview.com/news-flow/v2/news?filter=lang:zh-Hans&filter=area:WLD&client=screener&streaming=false"
 	url := "https://news-mediator.tradingview.com/news-flow/v2/news?filter=area%3AWLD&filter=lang%3Azh-Hans&client=screener&streaming=false"
-	resp, err := client.SetTimeout(time.Duration(5)*time.Second).R().
+	resp, err := client.SetTimeout(time.Duration(15)*time.Second).R().
 		SetHeader("Host", "news-mediator.tradingview.com").
 		SetHeader("Origin", "https://cn.tradingview.com").
 		SetHeader("Referer", "https://cn.tradingview.com/").
@@ -1027,7 +1027,8 @@ func (m MarketNewsApi) ReutersNew() *models.ReutersNews {
 		client.SetProxy(config.HttpProxy)
 	}
 	news := &models.ReutersNews{}
-	url := "https://www.reuters.com/pf/api/v3/content/fetch/articles-by-section-alias-or-id-v1?query={\"arc-site\":\"reuters\",\"fetch_type\":\"collection\",\"offset\":0,\"section_id\":\"/world/\",\"size\":9,\"uri\":\"/world/\",\"website\":\"reuters\"}&d=300&mxId=00000000&_website=reuters"
+	//url := "https://www.reuters.com/pf/api/v3/content/fetch/articles-by-section-alias-or-id-v1?query={\"arc-site\":\"reuters\",\"fetch_type\":\"collection\",\"offset\":0,\"section_id\":\"/world/\",\"size\":9,\"uri\":\"/world/\",\"website\":\"reuters\"}&d=300&mxId=00000000&_website=reuters"
+	url := "https://www.reuters.com/pf/api/v3/content/fetch/recent-stories-by-sections-v1?query=%7B%22section_ids%22%3A%22%2Fworld%2F%22%2C%22size%22%3A4%2C%22website%22%3A%22reuters%22%7D&d=334&mxId=00000000&_website=reuters"
 	_, err := client.SetTimeout(time.Duration(5)*time.Second).R().
 		SetHeader("Host", "www.reuters.com").
 		SetHeader("Origin", "https://www.reuters.com").

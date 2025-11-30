@@ -3,6 +3,7 @@ package data
 import (
 	"bufio"
 	_ "embed"
+	"errors"
 	"fmt"
 	"go-stock/backend/db"
 	"go-stock/backend/logger"
@@ -17,6 +18,7 @@ import (
 	"github.com/duke-git/lancet/v2/fileutil"
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/go-ego/gse"
+	"github.com/vcaesar/cedar"
 )
 
 const basefreq float64 = 100
@@ -123,7 +125,12 @@ func InitAnalyzeSentiment() {
 	for _, tag := range *tags {
 		err := seg.ReAddToken(tag.Name, basefreq+100, "n")
 		if err != nil {
-			logger.SugaredLogger.Errorf("添加%s失败:%s", tag.Name, err.Error())
+			if errors.Is(err, cedar.ErrNoKey) {
+				err := seg.AddToken(tag.Name, basefreq+100, "n")
+				if err != nil {
+					logger.SugaredLogger.Errorf("添加%s失败:%s", tag.Name, err.Error())
+				}
+			}
 		}
 	}
 	seg.CalcToken()
@@ -139,15 +146,31 @@ func InitAnalyzeSentiment() {
 				continue
 			}
 			k := strutil.SplitAndTrim(line, " ")
+			if len(k) == 0 {
+				continue
+			}
+			_, _, ok := seg.Find(k[0])
 			switch len(k) {
 			case 1:
-				err = seg.ReAddToken(k[0], basefreq)
+				if ok {
+					err = seg.ReAddToken(k[0], basefreq)
+				} else {
+					err = seg.AddToken(k[0], basefreq)
+				}
 			case 2:
 				freq, _ := convertor.ToFloat(k[1])
-				err = seg.ReAddToken(k[0], freq)
+				if ok {
+					err = seg.ReAddToken(k[0], freq)
+				} else {
+					err = seg.AddToken(k[0], freq)
+				}
 			case 3:
 				freq, _ := convertor.ToFloat(k[1])
-				err = seg.ReAddToken(k[0], freq, k[2])
+				if ok {
+					err = seg.ReAddToken(k[0], freq, k[2])
+				} else {
+					err = seg.AddToken(k[0], freq, k[2])
+				}
 			default:
 				logger.SugaredLogger.Errorf("用户词典格式错误:%s", line)
 			}
