@@ -68,6 +68,10 @@ func main() {
 	//	Sort: 0,
 	//})
 
+	log.SugaredLogger.Info("starting...")
+	log.SugaredLogger.Infof("version: %s  commit: %s", Version, VersionCommit)
+	log.SugaredLogger.Infof("build key: %s", BuildKey)
+
 	// Create an instance of the app structure
 	app := NewApp()
 	AppMenu := menu.NewMenu()

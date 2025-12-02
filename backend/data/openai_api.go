@@ -1025,7 +1025,6 @@ func AskAiWithTools(o *OpenAi, err error, messages []map[string]interface{}, ch 
 			"thinking": map[string]any{
 				"type": "enabled",
 			},
-			"tool_choice": "required",
 			"max_tokens":  o.MaxTokens,
 			"temperature": o.Temperature,
 			"stream":      true,
