@@ -877,7 +877,10 @@ func AskAi(o *OpenAi, err error, messages []map[string]interface{}, ch chan map[
 	resp, err := client.R().
 		SetDoNotParseResponse(true).
 		SetBody(map[string]interface{}{
-			"model":       o.Model,
+			"model": o.Model,
+			"thinking": map[string]any{
+				"type": "enabled",
+			},
 			"max_tokens":  o.MaxTokens,
 			"temperature": o.Temperature,
 			"stream":      true,
@@ -1018,7 +1021,11 @@ func AskAiWithTools(o *OpenAi, err error, messages []map[string]interface{}, ch 
 	resp, err := client.R().
 		SetDoNotParseResponse(true).
 		SetBody(map[string]interface{}{
-			"model":       o.Model,
+			"model": o.Model,
+			"thinking": map[string]any{
+				"type": "enabled",
+			},
+			"tool_choice": "required",
 			"max_tokens":  o.MaxTokens,
 			"temperature": o.Temperature,
 			"stream":      true,
