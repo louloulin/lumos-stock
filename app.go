@@ -239,7 +239,6 @@ func (a *App) CheckUpdate(flag int) {
 	releaseVersion := &models.GitHubReleaseVersion{}
 	_, err := resty.New().R().
 		SetResult(releaseVersion).
-		SetHeader("Authorization", "Bearer ***REMOVED***").
 		Get("https://api.github.com/repos/ArvinLovegood/go-stock/releases/latest")
 	if err != nil {
 		logger.SugaredLogger.Errorf("get github release version error:%s", err.Error())
@@ -250,7 +249,6 @@ func (a *App) CheckUpdate(flag int) {
 
 		tag := &models.Tag{}
 		_, err = resty.New().R().
-			SetHeader("Authorization", "Bearer ***REMOVED***").
 			SetResult(tag).
 			Get("https://api.github.com/repos/ArvinLovegood/go-stock/git/ref/tags/" + releaseVersion.TagName)
 		if err == nil {
