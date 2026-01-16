@@ -46,7 +46,7 @@ const contentStyle = ref("")
 const enableFund = ref(false)
 const enableAgent = ref(false)
 const enableDarkTheme = ref(null)
-const content = ref('未经授权,禁止商业目的!\n\n数据来源于网络,仅供参考;投资有风险,入市需谨慎')
+const content = ref('')
 const isFullscreen = ref(false)
 const activeKey = ref('stock')
 const containerRef = ref({})
@@ -671,7 +671,7 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-  WindowSetTitle("lumos-stock：AI赋能股票分析✨ "+officialStatement.value+"  未经授权,禁止商业目的！ [数据来源于网络,仅供参考;投资有风险,入市需谨慎]")
+  WindowSetTitle("lumos-stock：AI赋能股票分析✨ "+officialStatement.value+" ]")
   contentStyle.value = "max-height: calc(92vh);overflow: hidden"
   GetConfig().then((res) => {
     if (res.enableNews) {
