@@ -175,11 +175,11 @@ function getHeight() {
 }
 
 function sendTestNotice() {
-  let markdown = "### go-stock test\n" + new Date()
+  let markdown = "### lumos-stock test\n" + new Date()
   let msg = '{' +
       '     "msgtype": "markdown",' +
       '     "markdown": {' +
-      '         "title":"go-stock' + new Date() + '",' +
+      '         "title":"lumos-stock' + new Date() + '",' +
       '         "text": "' + markdown + '"' +
       '     },' +
       '      "at": {' +

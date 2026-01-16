@@ -8,10 +8,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"go-stock/backend/data"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
-	"go-stock/backend/models"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
+	"lumos-stock/backend/models"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1181,7 +1181,7 @@ func (a *App) SendDingDingMessageByType(message string, stockCode string, msgTyp
 	}
 	stockInfo := &data.StockInfo{}
 	db.Dao.Model(stockInfo).Where("code = ?", stockCode).First(stockInfo)
-	go data.NewAlertWindowsApi("go-stock消息通知", getMsgTypeName(msgType), GenNotificationMsg(stockInfo), "").SendNotification()
+	go data.NewAlertWindowsApi("lumos-stock消息通知", getMsgTypeName(msgType), GenNotificationMsg(stockInfo), "").SendNotification()
 	return data.NewDingDingAPI().SendDingDingMessage(message)
 }
 

@@ -2,10 +2,10 @@ package data
 
 import (
 	"encoding/json"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
-	"go-stock/backend/models"
-	"go-stock/backend/util"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
+	"lumos-stock/backend/models"
+	"lumos-stock/backend/util"
 	"math"
 	"testing"
 

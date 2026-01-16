@@ -3,8 +3,8 @@ package data
 import (
 	"encoding/json"
 	"errors"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
 	"time"
 
 	"github.com/samber/lo"

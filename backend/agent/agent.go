@@ -2,9 +2,9 @@ package agent
 
 import (
 	"context"
-	"go-stock/backend/agent/tools"
-	"go-stock/backend/data"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/agent/tools"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/logger"
 	"time"
 
 	"github.com/cloudwego/eino-ext/components/model/ark"

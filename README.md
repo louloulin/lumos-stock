@@ -1,18 +1,18 @@
-# go-stock : 基于大语言模型的AI赋能股票分析工具
-## ![go-stock](./build/appicon.png)
-![GitHub Release](https://img.shields.io/github/v/release/ArvinLovegood/go-stock?link=https%3A%2F%2Fgithub.com%2FArvinLovegood%2Fgo-stock%2Freleases&link=https%3A%2F%2Fgithub.com%2FArvinLovegood%2Fgo-stock%2Freleases)
-[![GitHub Repo stars](https://img.shields.io/github/stars/ArvinLovegood/go-stock?link=https%3A%2F%2Fgithub.com%2FArvinLovegood%2Fgo-stock)](https://github.com/ArvinLovegood/go-stock)
-[![star](https://gitee.com/arvinlovegood_admin/go-stock/badge/star.svg?theme=dark)](https://gitee.com/arvinlovegood_admin/go-stock)
+# lumos-stock : 基于大语言模型的AI赋能股票分析工具
+## ![lumos-stock](./build/appicon.png)
+![GitHub Release](https://img.shields.io/github/v/release/lumos-ai/lumos-stock?link=https%3A%2F%2Fgithub.com%2FArvinLovegood%2Flumos-stock%2Freleases&link=https%3A%2F%2Fgithub.com%2FArvinLovegood%2Flumos-stock%2Freleases)
+[![GitHub Repo stars](https://img.shields.io/github/stars/lumos-ai/lumos-stock?link=https%3A%2F%2Fgithub.com%2FArvinLovegood%2Flumos-stock)](https://github.com/lumos-ai/lumos-stock)
+[![star](https://gitee.com/lumos-ai/lumos-stock/badge/star.svg?theme=dark)](https://gitee.com/lumos-ai/lumos-stock)
 
-[//]: # ([![star]&#40;https://gitcode.com/ArvinLovegood/go-stock/star/badge.svg&#41;]&#40;https://gitcode.com/ArvinLovegood/go-stock&#41;)
+[//]: # ([![star]&#40;https://gitcode.com/lumos-ai/lumos-stock/star/badge.svg&#41;]&#40;https://gitcode.com/lumos-ai/lumos-stock&#41;)
 
 ### 🌟公众号
 ![扫码_搜索联合传播样式-白色版.png](build/screenshot/%E6%89%AB%E7%A0%81_%E6%90%9C%E7%B4%A2%E8%81%94%E5%90%88%E4%BC%A0%E6%92%AD%E6%A0%B7%E5%BC%8F-%E7%99%BD%E8%89%B2%E7%89%88.png)
 
 ### 📈 交流群
 
-[//]: # (- QQ交流群2：[点击链接加入群聊【go-stock交流群2】：892666282]&#40;https://qm.qq.com/q/5mYiy6Yxh0&#41;)
-- QQ交流群：[点击链接加入群聊【go-stock交流群】：491605333(定期清理，随缘入群)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=0YQ8qD3exahsD4YLNhzQTWe5ssstWC89&authKey=usOMMRFtIQDC%2FYcatHYapcxQbJ7PwXPHK9OypTXWzNjAq%2FRVvQu9bj2lRgb%2BSZ3p&noverify=0&group_code=491605333)
+[//]: # (- QQ交流群2：[点击链接加入群聊【lumos-stock交流群2】：892666282]&#40;https://qm.qq.com/q/5mYiy6Yxh0&#41;)
+- QQ交流群：[点击链接加入群聊【lumos-stock交流群】：491605333(定期清理，随缘入群)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=0YQ8qD3exahsD4YLNhzQTWe5ssstWC89&authKey=usOMMRFtIQDC%2FYcatHYapcxQbJ7PwXPHK9OypTXWzNjAq%2FRVvQu9bj2lRgb%2BSZ3p&noverify=0&group_code=491605333)
 
 ###  ✨ 简介
 - 本项目基于Wails和NaiveUI开发，结合AI大模型构建的股票分析工具。
@@ -22,11 +22,11 @@
 - 开发环境主要基于Windows10+，其他平台未测试或功能受限。
 
 ### 📦 立即体验
-[//]: # (- 安装版：[go-stock-amd64-installer.exe]&#40;https://github.com/ArvinLovegood/go-stock/releases&#41;)
-- 绿色版：[go-stock-windows-amd64.exe](https://github.com/ArvinLovegood/go-stock/releases)
-- MACOS绿色版：[go-stock-darwin-universal](https://github.com/ArvinLovegood/go-stock/releases)
+[//]: # (- 安装版：[lumos-stock-amd64-installer.exe]&#40;https://github.com/lumos-ai/lumos-stock/releases&#41;)
+- 绿色版：[lumos-stock-windows-amd64.exe](https://github.com/lumos-ai/lumos-stock/releases)
+- MACOS绿色版：[lumos-stock-darwin-universal](https://github.com/lumos-ai/lumos-stock/releases)
 
-[//]: # (- MACOS安装版：[go-stock-darwin-universal.pkg]&#40;https://github.com/ArvinLovegood/go-stock/releases&#41;)
+[//]: # (- MACOS安装版：[lumos-stock-darwin-universal.pkg]&#40;https://github.com/lumos-ai/lumos-stock/releases&#41;)
 
 
 ### 💬 支持大模型/平台
@@ -54,7 +54,7 @@
 | 每月 0 RMB	                       | vip0	          | 🌟 全部功能,软件自动更新(从GitHub下载),自行解决github平台网络问题。            |
 | 每月赞助 18.8 RMB<br>每年赞助 120 RMB		 | vip1	          | 💕 全部功能,软件自动更新(从CDN下载),更新快速便捷。AI配置指导，提示词参考等            |
 | 每月赞助 28.8 RMB<br>每年赞助 240 RMB		 | vip2	          | 💕 💕 vip1全部功能,赠送硅基流动AI分析服务,启动时自动同步最近24小时市场资讯(包括外媒简讯)  |
-| 每月赞助 X RMB			                   | vipX	          | 🧩 更多计划，视go-stock开源项目发展情况而定...(承接GitHub项目README广告推广💖) |
+| 每月赞助 X RMB			                   | vipX	          | 🧩 更多计划，视lumos-stock开源项目发展情况而定...(承接GitHub项目README广告推广💖) |
 
 ## 🧩 重大功能开发计划
 | 功能说明            | 状态 | 备注                                                                                                       |
@@ -65,7 +65,7 @@
 | 美股支持            | ✅  | 美股数据支持                                                                                                   |
 | 港股支持            | ✅  | 港股数据支持                                                                                                   |
 | 多轮对话            | ✅  | AI分析后可继续对话提问                                                                                             |
-| 自定义AI分析提问模板     | ✅  | 可配置的提问模板 [v2025.2.12.7-alpha](https://github.com/ArvinLovegood/go-stock/releases/tag/v2025.2.12.7-alpha) |
+| 自定义AI分析提问模板     | ✅  | 可配置的提问模板 [v2025.2.12.7-alpha](https://github.com/lumos-ai/lumos-stock/releases/tag/v2025.2.12.7-alpha) |
 | 不再强制依赖Chrome浏览器 | ✅  | 默认使用edge浏览器抓取新闻资讯                                                                                        |
 
 ## 👀 更新日志
@@ -96,7 +96,7 @@
 ### 2025.05.07 优化分时图的展示
 ### 2025.04.29 补全港股/美股基础数据，优化港股股价延迟问题，优化初始化逻辑
 ### 2025.04.25 市场资讯支持AI分析和总结：让AI帮你读市场！
-### 2025.04.24 新增市场行情模块：即时掌握全球市场行情资讯/动态，从此再也不用偷摸去各大财经网站啦。go-stock一键帮你搞定！
+### 2025.04.24 新增市场行情模块：即时掌握全球市场行情资讯/动态，从此再也不用偷摸去各大财经网站啦。lumos-stock一键帮你搞定！
 ### 2025.04.22 优化K线图展示，支持拉伸放大，看得更舒服啦！
 ### 2025.04.21 港股，美股K线数据获取优化
 ### 2025.04.01 优化部分设置选项，避免重启软件
@@ -113,10 +113,10 @@
 ### 2025.02.22 港股数据支持(目前有延迟)
 
 ### 2025.02.16 AI分析后可继续对话提问
-- [v2025.2.16.1-alpha](https://github.com/ArvinLovegood/go-stock/releases/tag/v2025.2.16.1-alpha)
+- [v2025.2.16.1-alpha](https://github.com/lumos-ai/lumos-stock/releases/tag/v2025.2.16.1-alpha)
 
 ### 2025.02.12 可配置的提问模板
-- [v2025.2.12.7-alpha](https://github.com/ArvinLovegood/go-stock/releases/tag/v2025.2.12.7-alpha)
+- [v2025.2.12.7-alpha](https://github.com/lumos-ai/lumos-stock/releases/tag/v2025.2.12.7-alpha)
 
 
 ## 🦄 重大更新
@@ -125,7 +125,7 @@
 ![img_1.png](build/screenshot/img15.png)
 - 2025.04.25 市场资讯支持AI分析和总结：让AI帮你读市场！
 ![img.png](img.png)
-- 2025.04.24 新增市场行情模块：即时掌握全球市场行情资讯/动态，从此再也不用偷摸去各大财经网站啦。go-stock一键帮你搞定！
+- 2025.04.24 新增市场行情模块：即时掌握全球市场行情资讯/动态，从此再也不用偷摸去各大财经网站啦。lumos-stock一键帮你搞定！
 ![img.png](build/screenshot/img13.png)
 ![img_13.png](build/screenshot/img_13.png)
 - ![img_14.png](build/screenshot/img_14.png)
@@ -163,7 +163,7 @@
 
 
 ## ⭐ Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=ArvinLovegood/go-stock&type=Date)](https://star-history.com/#ArvinLovegood/go-stock&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=lumos-ai/lumos-stock&type=Date)](https://star-history.com/#lumos-ai/lumos-stock&Date)
 ## 🤖 状态
 ![Alt](https://repobeats.axiom.co/api/embed/40b07d415a42c2264a18c4fe1b6f182ff1470687.svg "Repobeats analytics image")
 

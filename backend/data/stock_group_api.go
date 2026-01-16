@@ -1,7 +1,7 @@
 package data
 
 import (
-	"go-stock/backend/db"
+	"lumos-stock/backend/db"
 	"gorm.io/gorm"
 )
 

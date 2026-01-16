@@ -3,9 +3,9 @@ package data
 import (
 	"encoding/json"
 	"fmt"
-	"go-stock/backend/logger"
-	"go-stock/backend/models"
-	"go-stock/backend/util"
+	"lumos-stock/backend/logger"
+	"lumos-stock/backend/models"
+	"lumos-stock/backend/util"
 	"time"
 
 	"github.com/duke-git/lancet/v2/mathutil"

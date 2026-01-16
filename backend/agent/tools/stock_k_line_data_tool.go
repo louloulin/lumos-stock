@@ -9,7 +9,7 @@ import (
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/tidwall/gjson"
-	"go-stock/backend/data"
+	"lumos-stock/backend/data"
 )
 
 // @Author spark

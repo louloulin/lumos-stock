@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
-	"go-stock/backend/data"
+	"lumos-stock/backend/data"
 )
 
 // @Author spark

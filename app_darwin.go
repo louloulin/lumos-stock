@@ -11,9 +11,9 @@ import (
 	"github.com/gen2brain/beeep"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"go-stock/backend/data"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
 	"log"
 	"time"
 )
@@ -60,7 +60,7 @@ func (a *App) startup(ctx context.Context) {
 	// 创建 macOS 托盘
 	go func() {
 		// 使用 Beeep 库替代 Windows 的托盘库
-		err := beeep.Notify("go-stock", "应用程序已启动", "")
+		err := beeep.Notify("lumos-stock", "应用程序已启动", "")
 		if err != nil {
 			log.Fatalf("系统通知失败: %v", err)
 		}
@@ -92,7 +92,7 @@ func setUpScreen(a *App) {
 
 // OnSecondInstanceLaunch 处理第二实例启动时的通知
 func OnSecondInstanceLaunch(secondInstanceData options.SecondInstanceData) {
-	err := beeep.Notify("go-stock", "程序已经在运行了", "")
+	err := beeep.Notify("lumos-stock", "程序已经在运行了", "")
 	if err != nil {
 		logger.SugaredLogger.Error(err)
 	}
@@ -131,7 +131,7 @@ func MonitorStockPrices(a *App) {
 		title := "go-stock " + time.Now().Format(time.DateTime) + fmt.Sprintf("  %.2f¥", total)
 
 		// 发送通知显示实时数据
-		err := beeep.Notify("go-stock", title, "")
+		err := beeep.Notify("lumos-stock", title, "")
 		if err != nil {
 			logger.SugaredLogger.Errorf("发送通知失败: %v", err)
 		}
@@ -147,7 +147,7 @@ func onReady(a *App) {
 	logger.SugaredLogger.Infof("onReady")
 
 	// 使用 Beeep 发送通知
-	err := beeep.Notify("go-stock", "应用程序已准备就绪", "")
+	err := beeep.Notify("lumos-stock", "应用程序已准备就绪", "")
 	if err != nil {
 		log.Fatalf("系统通知失败: %v", err)
 	}

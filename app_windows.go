@@ -12,9 +12,9 @@ import (
 	"github.com/go-toast/toast"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"go-stock/backend/data"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
 	"time"
 )
 
@@ -137,8 +137,8 @@ func onReady(a *App) {
 	// 初始化操作
 	logger.SugaredLogger.Infof("systray onReady")
 	systray.SetIcon(icon2)
-	systray.SetTitle("go-stock")
-	systray.SetTooltip("go-stock 股票行情实时获取")
+	systray.SetTitle("lumos-stock")
+	systray.SetTooltip("lumos-stock 股票行情实时获取")
 	// 创建菜单项
 	show := systray.AddMenuItem("显示", "显示应用程序")
 	show.Click(func() {

@@ -2,7 +2,7 @@ package data
 
 import (
 	"context"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/logger"
 	"sync"
 	"time"
 

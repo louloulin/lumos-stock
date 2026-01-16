@@ -2,8 +2,8 @@ package data
 
 import (
 	"context"
-	"go-stock/backend/db"
-	log "go-stock/backend/logger"
+	"lumos-stock/backend/db"
+	log "lumos-stock/backend/logger"
 	"testing"
 )
 

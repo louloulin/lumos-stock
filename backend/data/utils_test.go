@@ -2,7 +2,7 @@ package data
 
 import (
 	"github.com/duke-git/lancet/v2/slice"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/logger"
 	"os"
 	"testing"
 )

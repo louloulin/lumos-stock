@@ -8,9 +8,9 @@ import (
 	"github.com/cloudwego/eino/flow/agent/react"
 	"github.com/cloudwego/eino/schema"
 	"github.com/samber/lo"
-	"go-stock/backend/agent/tool_logger"
-	"go-stock/backend/data"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/agent/tool_logger"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/logger"
 	"io"
 )
 

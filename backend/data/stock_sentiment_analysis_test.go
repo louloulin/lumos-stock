@@ -2,8 +2,8 @@ package data
 
 import (
 	"fmt"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
 	"strings"
 	"testing"
 

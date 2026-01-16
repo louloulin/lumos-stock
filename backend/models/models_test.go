@@ -3,8 +3,8 @@ package models
 import (
 	"encoding/json"
 	"github.com/duke-git/lancet/v2/strutil"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
 	"os"
 	"testing"
 )

@@ -671,7 +671,7 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-  WindowSetTitle("go-stock：AI赋能股票分析✨ "+officialStatement.value+"  未经授权,禁止商业目的！ [数据来源于网络,仅供参考;投资有风险,入市需谨慎]")
+  WindowSetTitle("lumos-stock：AI赋能股票分析✨ "+officialStatement.value+"  未经授权,禁止商业目的！ [数据来源于网络,仅供参考;投资有风险,入市需谨慎]")
   contentStyle.value = "max-height: calc(92vh);overflow: hidden"
   GetConfig().then((res) => {
     if (res.enableNews) {
@@ -708,7 +708,7 @@ onMounted(() => {
           content: () => h('div',{type:"info",style:{
             "text-align":"left",
               "font-size":"14px",
-              "color": data.source==="go-stock"?"#F98C24":"#549EC8"
+              "color": data.source==="lumos-stock"?"#F98C24":"#549EC8"
             }}, { default: () => data.content }),
           meta: () => h(NText,{type:"warning"}, { default: () => data.source}),
           duration:1000*30 ,

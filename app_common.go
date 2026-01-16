@@ -1,9 +1,9 @@
 package main
 
 import (
-	"go-stock/backend/agent"
-	"go-stock/backend/data"
-	"go-stock/backend/models"
+	"lumos-stock/backend/agent"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/models"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )

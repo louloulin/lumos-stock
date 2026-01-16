@@ -5,7 +5,7 @@ package data
 
 import (
 	"fmt"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/logger"
 
 	"os/exec"
 )

@@ -25,7 +25,7 @@ import EmbeddedUrl from "./EmbeddedUrl.vue";
       <embedded-url url="https://www.cls.cn/quotation"  :height="'calc(100vh - 252px)'"/>
     </n-tab-pane>
     <n-tab-pane name="消息墙" tab="消息墙">
-      <embedded-url url="https://go-stock.sparkmemory.top:16667/go-stock"  :height="'calc(100vh - 252px)'"/>
+      <embedded-url url="https://lumos-stock.sparkmemory.top:16667/lumos-stock"  :height="'calc(100vh - 252px)'"/>
     </n-tab-pane>
 
 

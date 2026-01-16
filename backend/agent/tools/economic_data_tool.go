@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
-	"go-stock/backend/data"
-	"go-stock/backend/util"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/util"
 	"strings"
 )
 

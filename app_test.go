@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"go-stock/backend/db"
-	"go-stock/backend/logger"
-	"go-stock/backend/models"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
+	"lumos-stock/backend/models"
 	"testing"
 	"time"
 

@@ -1,5 +1,5 @@
 {
-  "name": "go-stock",
+  "name": "lumos-stock",
   "version": "1.0.0",
   "description": "",
   "main": "",
@@ -45,7 +45,7 @@
   },
   "keywords": [
     "AI赋能股票分析",
-    "go-stock"
+    "lumos-stock"
   ],
   "author": "spark"
 }

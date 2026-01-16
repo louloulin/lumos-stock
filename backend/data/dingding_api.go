@@ -2,7 +2,7 @@ package data
 
 import (
 	"github.com/go-resty/resty/v2"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/logger"
 )
 
 // @Author spark

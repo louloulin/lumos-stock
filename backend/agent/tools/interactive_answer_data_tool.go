@@ -6,8 +6,8 @@ import (
 	"github.com/cloudwego/eino/schema"
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/tidwall/gjson"
-	"go-stock/backend/data"
-	"go-stock/backend/util"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/util"
 )
 
 // @Author spark

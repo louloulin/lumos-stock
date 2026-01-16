@@ -5,7 +5,7 @@ import (
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/go-resty/resty/v2"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/logger"
 	"strings"
 	"time"
 )

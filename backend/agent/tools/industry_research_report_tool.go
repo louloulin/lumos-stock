@@ -2,8 +2,8 @@ package tools
 
 import (
 	"context"
-	"go-stock/backend/data"
-	log "go-stock/backend/logger"
+	"lumos-stock/backend/data"
+	log "lumos-stock/backend/logger"
 	"strings"
 
 	"github.com/cloudwego/eino/components/tool"

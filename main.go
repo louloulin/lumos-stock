@@ -5,10 +5,10 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"go-stock/backend/data"
-	"go-stock/backend/db"
-	log "go-stock/backend/logger"
-	"go-stock/backend/models"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/db"
+	log "lumos-stock/backend/logger"
+	"lumos-stock/backend/models"
 	"os"
 	"runtime/debug"
 	"strings"
@@ -136,7 +136,7 @@ func main() {
 
 	// Create application with options
 	err = wails.Run(&options.App{
-		Title:     "go-stock：AI赋能股票分析✨ " + OFFICIAL_STATEMENT,
+		Title:     "lumos-stock：AI赋能股票分析✨ " + OFFICIAL_STATEMENT,
 		Width:     width * 4 / 5,
 		Height:    920,
 		MinWidth:  minWidth,
@@ -161,7 +161,7 @@ func main() {
 		OnShutdown:               app.shutdown,
 		WindowStartState:         options.Normal,
 		SingleInstanceLock: &options.SingleInstanceLock{
-			UniqueId:               "go-stock",
+			UniqueId:               "lumos-stock",
 			OnSecondInstanceLaunch: OnSecondInstanceLaunch,
 		},
 		Bind: []interface{}{
@@ -188,7 +188,7 @@ func main() {
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{
-				Title:   "go-stock",
+				Title:   "lumos-stock",
 				Message: "",
 				Icon:    icon,
 			},

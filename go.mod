@@ -1,4 +1,4 @@
-module go-stock
+module lumos-stock
 
 go 1.25.0
 

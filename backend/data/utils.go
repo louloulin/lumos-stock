@@ -2,7 +2,7 @@ package data
 
 import (
 	"github.com/PuerkitoBio/goquery"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/logger"
 	"regexp"
 	"strings"
 )

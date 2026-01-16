@@ -20,19 +20,19 @@ jobs:
       fail-fast: false
       matrix:
         build:
-          - name: 'go-stock-windows-amd64.exe'
+          - name: 'lumos-stock-windows-amd64.exe'
             platform:  'windows/amd64'
             os: 'windows-latest'
-#          - name: 'go-stock-linux-amd64'
+#          - name: 'lumos-stock-linux-amd64'
 #            platform: 'linux/amd64'
 #            os: 'ubuntu-latest'
-          - name: 'go-stock-darwin-universal'
+          - name: 'lumos-stock-darwin-universal'
             platform: 'darwin/universal'
             os: 'macos-latest'
-          - name: 'go-stock-darwin-intel'
+          - name: 'lumos-stock-darwin-intel'
             platform: 'darwin'
             os: 'macos-latest'
-          - name: 'go-stock-darwin-arm64'
+          - name: 'lumos-stock-darwin-arm64'
             platform: 'darwin/arm64'
             os: 'macos-latest'
 

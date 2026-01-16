@@ -10,10 +10,10 @@ import { addMonths, format ,parse} from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 const updateLog = ref('');
 const versionInfo = ref('');
-const icon = ref('https://raw.githubusercontent.com/ArvinLovegood/go-stock/master/build/appicon.png');
-const alipay =ref('https://github.com/ArvinLovegood/go-stock/raw/master/build/screenshot/alipay.jpg')
-const wxpay =ref('https://github.com/ArvinLovegood/go-stock/raw/master/build/screenshot/wxpay.jpg')
-const wxgzh =ref('https://github.com/ArvinLovegood/go-stock/raw/dev/build/screenshot/%E6%89%AB%E7%A0%81_%E6%90%9C%E7%B4%A2%E8%81%94%E5%90%88%E4%BC%A0%E6%92%AD%E6%A0%B7%E5%BC%8F-%E7%99%BD%E8%89%B2%E7%89%88.png')
+const icon = ref('https://raw.githubusercontent.com/ArvinLovegood/lumos-stock/master/build/appicon.png');
+const alipay =ref('https://github.com/ArvinLovegood/lumos-stock/raw/master/build/screenshot/alipay.jpg')
+const wxpay =ref('https://github.com/ArvinLovegood/lumos-stock/raw/master/build/screenshot/wxpay.jpg')
+const wxgzh =ref('https://github.com/ArvinLovegood/lumos-stock/raw/dev/build/screenshot/%E6%89%AB%E7%A0%81_%E6%90%9C%E7%B4%A2%E8%81%94%E5%90%88%E4%BC%A0%E6%92%AD%E6%A0%B7%E5%BC%8F-%E7%99%BD%E8%89%B2%E7%89%88.png')
 const notify = useNotification()
 const vipLevel=ref("");
 const vipStartTime=ref("");
@@ -122,10 +122,10 @@ EventsOn("updateVersion",async (msg) => {
             <n-image width="100" :src="icon" />
             <h1>
               <n-badge v-if="!vipLevel"  :value="versionInfo" :offset="[50,10]"  type="success">
-                <n-gradient-text type="info" :size="50" >go-stock</n-gradient-text>
+                <n-gradient-text type="info" :size="50" >lumos-stock</n-gradient-text>
               </n-badge>
               <n-badge v-if="vipLevel"  :value="versionInfo" :offset="[50,10]"  type="success">
-                <n-gradient-text :type="expired?'error':'warning'" :size="50" >go-stock</n-gradient-text><n-tag :bordered="false" size="small" type="warning">VIP{{vipLevel}}</n-tag>
+                <n-gradient-text :type="expired?'error':'warning'" :size="50" >lumos-stock</n-gradient-text><n-tag :bordered="false" size="small" type="warning">VIP{{vipLevel}}</n-tag>
               </n-badge>
             </h1>
             <n-gradient-text  :type="expired?'error':'warning'" v-if="vipLevel" >vip到期时间：{{vipEndTime}}</n-gradient-text>
@@ -138,13 +138,13 @@ EventsOn("updateVersion",async (msg) => {
                 <i style="color: crimson">本软件仅供学习研究目的，AI分析结果仅供参考，本软件不提供任何投资建议或决策，风险自担！</i>
               </p>
               <p>
-                欢迎点赞GitHub：<a href="https://github.com/ArvinLovegood/go-stock" target="_blank">go-stock</a><n-divider vertical />
-                <a href="https://github.com/ArvinLovegood/go-stock" target="_blank">GitHub</a><n-divider vertical />
-                <a href="https://github.com/ArvinLovegood/go-stock/issues" target="_blank">Issues</a><n-divider vertical />
-                <a href="https://github.com/ArvinLovegood/go-stock/releases" target="_blank">Releases</a><n-divider vertical />
+                欢迎点赞GitHub：<a href="https://github.com/ArvinLovegood/lumos-stock" target="_blank">lumos-stock</a><n-divider vertical />
+                <a href="https://github.com/ArvinLovegood/lumos-stock" target="_blank">GitHub</a><n-divider vertical />
+                <a href="https://github.com/ArvinLovegood/lumos-stock/issues" target="_blank">Issues</a><n-divider vertical />
+                <a href="https://github.com/ArvinLovegood/lumos-stock/releases" target="_blank">Releases</a><n-divider vertical />
               </p>
               <p v-if="updateLog">更新说明：{{updateLog}}</p>
-              <p>项目社区：<a href="https://go-stock.sparkmemory.top/" target="_blank">https://go-stock.sparkmemory.top/</a></p>
+              <p>项目社区：<a href="https://lumos-stock.sparkmemory.top/" target="_blank">https://lumos-stock.sparkmemory.top/</a></p>
               <p>QQ交流群：<a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=0YQ8qD3exahsD4YLNhzQTWe5ssstWC89&authKey=usOMMRFtIQDC%2FYcatHYapcxQbJ7PwXPHK9OypTXWzNjAq%2FRVvQu9bj2lRgb%2BSZ3p&noverify=0&group_code=491605333" target="_blank">491605333</a></p>
             </div>
           </n-space>
@@ -169,7 +169,7 @@ EventsOn("updateVersion",async (msg) => {
                   <n-td>赞助 28.8 RMB/月<br>赞助 240 RMB/年</n-td><n-td>vip2</n-td><n-td>💕 vip1全部功能,赠送硅基流动AI分析服务，启动时自动同步最近24小时市场资讯(包括外媒简讯) 💕</n-td>
                 </n-tr>
                 <n-tr>
-                  <n-td>每月赞助 X RMB</n-td><n-td>vipX</n-td><n-td>🧩 更多计划，视go-stock开源项目发展情况而定...(承接GitHub项目README广告推广💖)</n-td>
+                  <n-td>每月赞助 X RMB</n-td><n-td>vipX</n-td><n-td>🧩 更多计划，视lumos-stock开源项目发展情况而定...(承接GitHub项目README广告推广💖)</n-td>
                 </n-tr>
               </n-tbody>
             </n-table>

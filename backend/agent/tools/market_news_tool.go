@@ -3,8 +3,8 @@ package tools
 import (
 	"context"
 	"encoding/json"
-	"go-stock/backend/data"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/logger"
 	"strings"
 
 	"github.com/cloudwego/eino/components/tool"

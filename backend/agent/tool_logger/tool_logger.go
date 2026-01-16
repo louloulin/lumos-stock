@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/logger"
 	"io"
 
 	"github.com/cloudwego/eino/callbacks"

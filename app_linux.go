@@ -9,8 +9,8 @@ import (
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/mathutil"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"go-stock/backend/data"
-	"go-stock/backend/logger"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/logger"
 )
 
 // App struct
