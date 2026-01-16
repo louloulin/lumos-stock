@@ -1,8 +1,9 @@
 package data
 
 import (
-	"github.com/go-resty/resty/v2"
 	"lumos-stock/backend/logger"
+
+	"github.com/go-resty/resty/v2"
 )
 
 // @Author spark
@@ -49,7 +50,7 @@ func (DingDingAPI) SendToDingDing(title, message string) string {
 		SetBody(&Message{
 			Msgtype: "markdown",
 			Markdown: Markdown{
-				Title: "go-stock " + title,
+				Title: "lumos-stock " + title,
 				Text:  message,
 			},
 			At: At{

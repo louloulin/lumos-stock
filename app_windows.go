@@ -6,16 +6,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"lumos-stock/backend/data"
+	"lumos-stock/backend/db"
+	"lumos-stock/backend/logger"
+	"time"
+
 	"github.com/duke-git/lancet/v2/convertor"
 	"github.com/duke-git/lancet/v2/strutil"
 	"github.com/energye/systray"
 	"github.com/go-toast/toast"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"lumos-stock/backend/data"
-	"lumos-stock/backend/db"
-	"lumos-stock/backend/logger"
-	"time"
 )
 
 // startup is called at application startup
@@ -74,8 +75,8 @@ func (a *App) startup(ctx context.Context) {
 
 func OnSecondInstanceLaunch(secondInstanceData options.SecondInstanceData) {
 	notification := toast.Notification{
-		AppID:    "go-stock",
-		Title:    "go-stock",
+		AppID:    "lumos-stock",
+		Title:    "lumos-stock",
 		Message:  "程序已经在运行了",
 		Icon:     "",
 		Duration: "short",
@@ -123,7 +124,7 @@ func MonitorStockPrices(a *App) {
 
 	}
 	if total != 0 {
-		title := "go-stock " + time.Now().Format(time.DateTime) + fmt.Sprintf("  %.2f¥", total)
+		title := "lumos-stock " + time.Now().Format(time.DateTime) + fmt.Sprintf("  %.2f¥", total)
 		systray.SetTooltip(title)
 	}
 
@@ -178,7 +179,7 @@ func (a *App) beforeClose(ctx context.Context) (prevent bool) {
 
 	dialog, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
 		Type:         runtime.QuestionDialog,
-		Title:        "go-stock",
+		Title:        "lumos-stock",
 		Message:      "确定关闭吗？",
 		Buttons:      []string{"确定"},
 		Icon:         icon,

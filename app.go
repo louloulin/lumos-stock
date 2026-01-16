@@ -317,7 +317,7 @@ func (a *App) CheckUpdate(flag int) {
 		go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 			"time":    "发现新版本：" + releaseVersion.TagName,
 			"isRed":   true,
-			"source":  "go-stock",
+			"source":  "lumos-stock",
 			"content": fmt.Sprintf("%s", commit.Message),
 		})
 		resp, err := resty.New().R().Get(downloadUrl)
@@ -325,7 +325,7 @@ func (a *App) CheckUpdate(flag int) {
 			go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 				"time":    "新版本：" + releaseVersion.TagName,
 				"isRed":   true,
-				"source":  "go-stock",
+				"source":  "lumos-stock",
 				"content": commit.Message + "\n新版本下载失败,请稍后重试或请前往 https://github.com/ArvinLovegood/go-stock/releases 手动下载替换文件。",
 			})
 			return
@@ -336,7 +336,7 @@ func (a *App) CheckUpdate(flag int) {
 			go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 				"time":    "新版本：" + releaseVersion.TagName,
 				"isRed":   true,
-				"source":  "go-stock",
+				"source":  "lumos-stock",
 				"content": commit.Message + "\n新版本下载失败,请稍后重试或请前往 https://github.com/ArvinLovegood/go-stock/releases 手动下载替换文件。",
 			})
 			return
@@ -351,7 +351,7 @@ func (a *App) CheckUpdate(flag int) {
 			go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 				"time":    "新版本：" + releaseVersion.TagName,
 				"isRed":   true,
-				"source":  "go-stock",
+				"source":  "lumos-stock",
 				"content": "版本更新完成,下次重启软件生效.",
 			})
 		}
@@ -360,7 +360,7 @@ func (a *App) CheckUpdate(flag int) {
 			go runtime.EventsEmit(a.ctx, "newsPush", map[string]any{
 				"time":    "当前版本：" + Version,
 				"isRed":   true,
-				"source":  "go-stock",
+				"source":  "lumos-stock",
 				"content": "当前版本无更新",
 			})
 		}
@@ -1358,7 +1358,7 @@ func (a *App) ShareAnalysis(stockCode, stockName string) string {
 			"stockCode":    stockCode,
 			"stockName":    stockName,
 			"analysisTime": analysisTime,
-		}).Post("http://go-stock.sparkmemory.top:16688/upload")
+		}).Post("http://lumos-stock.sparkmemory.top:16688/upload")
 		if err != nil {
 			return err.Error()
 		}
