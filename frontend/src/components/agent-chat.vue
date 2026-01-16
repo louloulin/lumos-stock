@@ -96,21 +96,29 @@ EventsOn("agent-message", (data) => {
   console.log(data)
   if(data['role']==="assistant"){
     loading.value = false;
-    const lastItem = chatList.value[0];
+    const lastIndex = 0;
+    const lastItem = chatList.value[lastIndex];
+
+    // 创建新对象以触发Vue响应式更新
+    const updatedItem = { ...lastItem };
+
     if (data['reasoning_content']){
-      lastItem.reasoning += data['reasoning_content'];
+      updatedItem.reasoning += data['reasoning_content'];
     }
     if (data['content']){
-      lastItem.content +=data['content'];
+      updatedItem.content += data['content'];
     }
     if(data['tool_calls']){
       for (const tool of  data['tool_calls']) {
           console.log(tool.id, tool.type, tool.function.name, tool.function.arguments);
-        lastItem.reasoning += "\n```"+tool.function.name+"\n" +
+        updatedItem.reasoning += "\n```"+tool.function.name+"\n" +
             "参数："+ (tool.function.arguments?tool.function.arguments:"无")+
             "\n```\n";
       }
     }
+
+    // 替换整个对象以触发响应式更新
+    chatList.value[lastIndex] = updatedItem;
   }
   if(data['response_meta']&&data['response_meta'].finish_reason==="stop"){
     isStreamLoad.value = false;
