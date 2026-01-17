@@ -12,9 +12,8 @@
     >
       <!-- eslint-disable vue/no-unused-vars -->
       <template #content="{ item, index }">
-        <t-chat-reasoning v-if="item.role === 'assistant'"  expand-icon-placement="right">
-          <t-chat-loading v-if="isStreamLoad" text="思考中..." />
-          <t-chat-content v-if="item.reasoning.length > 0" :content="item.reasoning" />
+        <t-chat-reasoning v-if="item.role === 'assistant' && item.reasoning.length > 0" expand-icon-placement="right">
+          <t-chat-content :content="item.reasoning" />
         </t-chat-reasoning>
         <t-chat-content v-if="item.content.length > 0" :content="item.content" />
       </template>
@@ -99,9 +98,20 @@ onBeforeUnmount(() => {
 })
 
 EventsOn("agent-message", (data) => {
-  console.log('agent-message event:', data)
+  console.log('=== agent-message event ===')
+  console.log('Raw data type:', typeof data)
+  console.log('Raw data:', data)
+  console.log('Data keys:', data ? Object.keys(data) : 'data is null/undefined')
+  console.log('Role:', data?.role)
+  console.log('Content:', data?.content)
+  console.log('Content type:', typeof data?.content)
+  console.log('Reasoning content:', data?.reasoning_content)
+  console.log('Response meta:', data?.response_meta)
+  console.log('Current generating index:', currentGeneratingIndex.value)
+  console.log('Chat list length:', chatList.value.length)
+  console.log('==========================')
 
-  if(data['role'] === "assistant"){
+  if(data?.role === "assistant"){
     loading.value = false;
 
     // 修复 1: 使用动态索引而不是硬编码
@@ -114,29 +124,69 @@ EventsOn("agent-message", (data) => {
     }
 
     const lastItem = chatList.value[lastIndex];
+    console.log('Current item before update:', {
+      content: lastItem.content,
+      contentLength: lastItem.content?.length,
+      reasoning: lastItem.reasoning
+    })
 
     // 修复 3: 直接修改对象属性以保持响应式
-    if (data['reasoning_content']){
-      lastItem.reasoning += data['reasoning_content'];
+    // 注意: schema.Message 可能使用不同字段名,尝试多种可能的字段
+    let content = '';
+    let reasoningContent = '';
+
+    // 尝试多种可能的字段名
+    if (data.content !== undefined) {
+      content = String(data.content);
+    } else if (data['content'] !== undefined) {
+      content = String(data['content']);
     }
-    if (data['content']){
-      lastItem.content += data['content'];
+
+    if (data.reasoning_content !== undefined) {
+      reasoningContent = String(data.reasoning_content);
+    } else if (data.RespContent !== undefined) {
+      reasoningContent = String(data.RespContent);
+    } else if (data['reasoning_content'] !== undefined) {
+      reasoningContent = String(data['reasoning_content']);
     }
-    if(data['tool_calls']){
-      for (const tool of data['tool_calls']) {
-          console.log(tool.id, tool.type, tool.function.name, tool.function.arguments);
-        lastItem.reasoning += "\n```"+tool.function.name+"\n" +
-            "参数："+ (tool.function.arguments ? tool.function.arguments : "无")+
+
+    console.log('Processed content:', content, 'length:', content.length)
+    console.log('Processed reasoning:', reasoningContent, 'length:', reasoningContent.length)
+
+    if (reasoningContent){
+      lastItem.reasoning += reasoningContent;
+      console.log('Updated reasoning, new length:', lastItem.reasoning.length)
+    }
+    if (content){
+      lastItem.content += content;
+      console.log('Updated content, new length:', lastItem.content.length)
+    }
+
+    // 处理工具调用
+    const toolCalls = data.tool_calls || data['tool_calls'];
+    if(toolCalls && toolCalls.length > 0){
+      for (const tool of toolCalls) {
+          console.log('Tool call:', tool.id, tool.type, tool.function?.name, tool.function?.arguments);
+        const toolName = tool.function?.name || tool.name || 'unknown';
+        const toolArgs = tool.function?.arguments || tool.arguments || '无';
+        lastItem.reasoning += "\n```"+toolName+"\n" +
+            "参数："+ toolArgs +
             "\n```\n";
       }
     }
+
+    console.log('Item after update:', {
+      content: lastItem.content,
+      contentLength: lastItem.content?.length,
+      reasoning: lastItem.reasoning
+    })
 
     // 修复 4: 强制触发响应式更新 (重新赋值数组)
     chatList.value = [...chatList.value];
   }
 
   // 修复 5: 更完善的结束检测
-  const finishReason = data['response_meta']?.finish_reason;
+  const finishReason = data?.response_meta?.finish_reason;
   if (finishReason === "stop" || finishReason === "length") {
     console.log('Stream finished:', finishReason);
     isStreamLoad.value = false;
@@ -145,8 +195,8 @@ EventsOn("agent-message", (data) => {
   }
 
   // 修复 6: 检测是否有错误
-  if (data['error']) {
-    console.error('Stream error:', data['error']);
+  if (data?.error) {
+    console.error('Stream error:', data.error);
     isStreamLoad.value = false;
     loading.value = false;
     currentGeneratingIndex.value = -1;
