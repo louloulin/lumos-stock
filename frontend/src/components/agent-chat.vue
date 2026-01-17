@@ -97,53 +97,67 @@ onBeforeUnmount(() => {
   currentGeneratingIndex.value = -1;
 })
 
+// 用于累积内容的临时存储
+const accumulatedContent = ref('');
+const accumulatedReasoning = ref('');
+
 EventsOn("agent-message", (data) => {
-  console.log('=== agent-message ===', {
-    role: data?.role,
-    content: data?.content,
-    reasoning: data?.reasoning_content,
-    respContent: data?.RespContent,
-    index: currentGeneratingIndex.value,
-    listLength: chatList.value.length
-  })
+  console.log('=== RAW DATA FROM GO ===')
+  console.log('typeof data:', typeof data)
+  console.log('data keys:', Object.keys(data || {}))
+  console.log('full data:', JSON.stringify(data, null, 2))
 
   if (data?.role === "assistant") {
     loading.value = false;
     const lastIndex = currentGeneratingIndex.value;
 
     if (lastIndex < 0 || lastIndex >= chatList.value.length) {
-      console.error('❌ Invalid index:', lastIndex);
+      console.error('❌ Invalid index:', lastIndex, 'length:', chatList.value.length);
       return;
     }
 
-    const oldItem = chatList.value[lastIndex];
-    const contentChunk = data?.content || data?.RespContent || '';
-    const reasoningChunk = data?.reasoning_content || '';
+    // 尝试所有可能的字段名
+    const contentPart = data?.content || data?.Content || '';
+    const reasoningPart = data?.reasoning_content || data?.ReasoningContent || '';
 
-    // ✅ 创建新对象而非修改旧对象
-    const newItem = {
-      ...oldItem,
-      content: oldItem.content + contentChunk,
-      reasoning: oldItem.reasoning + reasoningChunk
-    };
+    console.log('📦 Content part:', JSON.stringify(contentPart), 'type:', typeof contentPart)
+    console.log('📦 Reasoning part:', JSON.stringify(reasoningPart), 'type:', typeof reasoningPart)
 
-    // ✅ 替换并触发更新
-    chatList.value[lastIndex] = newItem;
-    chatList.value = [...chatList.value];
+    // 累积内容
+    accumulatedContent.value += contentPart;
+    accumulatedReasoning.value += reasoningPart;
 
-    console.log('✅ Updated:', {
-      index: lastIndex,
-      contentLength: newItem.content.length,
-      reasoningLength: newItem.reasoning.length
-    })
+    console.log('📊 Accumulated content length:', accumulatedContent.value.length)
+    console.log('📊 Accumulated reasoning length:', accumulatedReasoning.value.length)
+
+    // 创建完全新的数组
+    const newChatList = chatList.value.map((item, idx) => {
+      if (idx === lastIndex) {
+        // 返回一个全新的对象
+        return {
+          avatar: item.avatar,
+          name: item.name,
+          datetime: item.datetime,
+          role: item.role,
+          content: accumulatedContent.value,
+          reasoning: accumulatedReasoning.value,
+        };
+      }
+      return item;
+    });
+
+    // 完全替换数组
+    chatList.value = newChatList;
   }
 
   const finishReason = data?.response_meta?.finish_reason;
   if (finishReason === "stop" || finishReason === "length") {
-    console.log('✅ Stream finished');
+    console.log('✅ Stream finished, total content length:', accumulatedContent.value.length);
     isStreamLoad.value = false;
     loading.value = false;
     currentGeneratingIndex.value = -1;
+    accumulatedContent.value = '';
+    accumulatedReasoning.value = '';
   }
 
   if (data?.error) {
@@ -235,11 +249,14 @@ const inputEnter = function () {
   if (isStreamLoad.value) return;
   if (!inputValue.value) return;
 
-  // ✅ 保存输入内容
   const question = inputValue.value;
   inputValue.value = '';
 
-  // ✅ 清空旧消息(包括初始欢迎消息)
+  // 重置累积器
+  accumulatedContent.value = '';
+  accumulatedReasoning.value = '';
+
+  // 清空旧消息
   chatList.value = [];
 
   // 添加用户消息
@@ -266,10 +283,15 @@ const inputEnter = function () {
   loading.value = true;
   isStreamLoad.value = true;
 
+  console.log('🚀 Starting chat, index:', 0, 'question:', question)
+
   ChatWithAgent(question, selectValue.value, 0)
     .catch(err => {
       console.error('❌ ChatWithAgent error:', err);
-      chatList.value[currentGeneratingIndex.value].content = '抱歉，发生了错误，请重试。';
+      chatList.value[currentGeneratingIndex.value] = {
+        ...chatList.value[currentGeneratingIndex.value],
+        content: '抱歉，发生了错误，请重试。'
+      };
       chatList.value = [...chatList.value];
       isStreamLoad.value = false;
       loading.value = false;
