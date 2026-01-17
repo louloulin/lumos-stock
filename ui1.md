@@ -1,1647 +1,1104 @@
-# Lumos Stock UI改造计划
+# AI Agent 智能体模块 UI 改造计划
 
-## 📊 项目现状分析
-
-### 当前技术栈
-- **框架**: Vue 3.5.17 (Composition API)
-- **主UI库**: Naive UI 2.43.2
-- **辅助UI库**: TDesign Vue Next 0.4.5 (AI聊天模块)
-- **图表库**: ECharts 5.6.0
-- **构建工具**: Vite 7.2.4
-- **桌面框架**: Wails (Go + Web)
-- **样式方案**: 原生CSS + 内联样式
-
-### 应用类型
-跨平台桌面应用（Windows/macOS/Linux）- 股票AI分析工具
+> 分析日期: 2025-01-17
+> 当前版本: 基于 TDesign Chat + Naive UI
+> 参考风格: Shadcn UI + 欧易交易所 (OKX)
 
 ---
 
-## 🔍 当前UI存在的主要问题
+## 一、当前 UI 现状分析
 
-### 1. **设计系统不统一** ⚠️
+### 1.1 核心组件架构
 
-#### 问题描述
-- 混合使用两套UI库（Naive UI + TDesign），导致视觉风格不一致
-- 缺乏统一的设计语言和设计令牌（Design Tokens）
-- 颜色、间距、字体等硬编码在各组件中
-
-#### 具体表现
-```javascript
-// stock.vue:83-86 - 硬编码颜色
-const upColor = '#ec0000';      // 涨（红色）
-const downColor = '#00da3c';    // 跌（绿色）
-
-// App.vue:698 - 内联样式颜色
-style: { "color": "#f67979" }   // 红色新闻
-style: { "color": "#F98C24" }   // lumos新闻
-style: { "color": "#549EC8" }   // 其他新闻
+```
+agent-chat.vue (主组件)
+├── TDesign Chat 组件库
+│   ├── t-chat (主聊天容器)
+│   ├── t-chat-reasoning (思考过程展示)
+│   ├── t-chat-content (消息内容)
+│   ├── t-chat-action (操作按钮)
+│   └── t-chat-sender (输入框)
+├── Naive UI 组件
+│   ├── NSelect (AI模型选择)
+│   └── NImage (头像显示)
+└── Wails Runtime (事件通信)
 ```
 
-#### 影响
-- 维护成本高，修改颜色需要全局搜索替换
-- 主题切换困难，深浅色主题一致性差
-- 视觉体验割裂
+### 1.2 现有功能清单
+
+| 功能模块 | 实现状态 | 说明 |
+|---------|---------|------|
+| 流式响应 | ✅ 已实现 | Wails EventsOn 监听 |
+| 思考过程展示 | ✅ 已实现 | reasoning_content 字段 |
+| 工具调用显示 | ✅ 已实现 | tool_calls 格式化展示 |
+| AI模型切换 | ✅ 已实现 | NSelect 下拉选择 |
+| 深色模式 | ✅ 已实现 | theme-mode 属性切换 |
+| 复制功能 | ✅ 已实现 | operation-btn="copy" |
+| 滚动定位 | ✅ 已实现 | scrollToBottom |
+| 停止生成 | ✅ 已实现 | onStop 方法 |
+| 清空历史 | ✅ 已实现 | clearConfirm |
 
 ---
 
-### 2. **信息架构混乱** 📐
+## 二、UI 问题诊断
 
-#### 问题描述
-- 主组件stock.vue代码量过大（2462行），违反单一职责原则
-- 布局结构不清晰，缺乏明确的视觉层级
-- 导航菜单层级过深（市场行情下有12个子菜单）
+### 2.1 设计层面问题
 
-#### 具体表现
-```vue
-<!-- App.vue:132-397 - 菜单结构过于复杂 -->
-{
-  key: 'market',
-  children: [
-    { label: '市场快讯' },
-    { label: '全球股指' },
-    { label: '重大指数' },
-    { label: '行业排名' },
-    { label: '个股资金流向' },
-    { label: '龙虎榜' },
-    { label: '个股研报' },
-    { label: '公司公告' },
-    { label: '行业研究' },
-    { label: '当前热门' },
-    { label: '指标选股' },
-    { label: '名站优选' }
-  ]
-}
+#### 🔴 严重问题
+
+1. **缺乏视觉层次感**
+   - 聊天气泡与背景对比度不足
+   - 思考过程折叠区域与普通内容难以区分
+   - 用户消息与 AI 消息视觉权重相似
+
+2. **信息密度失衡**
+   - 工具调用信息直接堆砌在 reasoning 中，缺乏结构化展示
+   - 模型选择器 (200px) 占据过多输入区域空间
+   - 底部"发送"按钮样式过于简单
+
+3. **交互反馈不足**
+   - 流式响应时无进度指示
+   - 思考过程"已深度思考"仅在备份组件中存在
+   - 工具调用执行无可视化反馈
+
+#### 🟡 中等问题
+
+4. **组件混用风格不统一**
+   - TDesign Chat + Naive UI Select 产生视觉割裂
+   - 硬编码样式与 CSS 变量混用
+   - 字体仅 Nunito，中文字体缺失
+
+5. **响应式布局缺失**
+   - 固定宽度 (200px) 模型选择器在窄屏下溢出
+   - 底部按钮固定位置 (bottom: 210px) 缺乏自适应
+
+6. **可访问性问题**
+   - 颜色对比度未达标 (WCAG 2.1 AA)
+   - 无键盘导航提示
+   - 屏幕阅读器支持不足
+
+#### 🟢 轻微问题
+
+7. **细节优化空间**
+   - 滚动条样式仅 Webkit，Firefox 用户体验差
+   - 头像硬编码 URL 无容错
+   - 消息时间戳格式 (toDateString) 不友好
+
+---
+
+### 2.2 技术债务
+
+| 问题类型 | 具体表现 | 影响范围 |
+|---------|---------|---------|
+| 代码冗余 | agent-chat.vue 与 agent-chat_bk.vue 重复度高 | 维护成本 |
+| 魔法数字 | 样式中出现 `bottom: 210px`, `width: 200px` | 可维护性 |
+| 事件泄漏风险 | EventsOff 仅在 onBeforeUnmount 中调用 | 内存泄漏 |
+| 类型安全不足 | JSX 脚本在备份组件中，主组件用 TS | 类型一致性 |
+| 硬编码数据 | 用户名"宇宙无敌大韭菜"写死在代码中 | 产品化 |
+
+---
+
+## 三、参考风格分析
+
+### 3.1 Shadcn UI 设计原则
+
+```
+核心特征:
+├── 极简主义: 去除装饰性元素，专注内容
+├── 精致边框: 1px 细边框 + 轻微圆角 (radius-md)
+├── 微妙阴影: box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05)
+├── 高对比度: 文本与背景对比比 ≥ 4.5:1
+└── 动效克制: transition: all 150ms ease-in-out
+
+色彩系统:
+--background: 0 0% 100%
+--foreground: 222.2 84% 4.9%
+--primary: 222.2 47.4% 11.2%
+--primary-foreground: 210 40% 98%
+--muted: 210 40% 96.1%
+--muted-foreground: 215.4 16.3% 46.9%
+--border: 214.3 31.8% 91.4%
 ```
 
-#### 影响
-- 用户认知负担重，难以快速找到功能
-- 学习曲线陡峭
-- 代码可维护性差
+### 3.2 欧易交易所 (OKX) 风格特征
 
----
+```
+布局特点:
+├── 左侧导航: 宽度 240px，深色背景 (#0B0E11)
+├── 主内容区: 卡片式布局，圆角 8px
+├── 顶部操作栏: 高度 56px，固定定位
+└── 响应式: 移动端抽屉式菜单
 
-### 3. **视觉层级不明确** 👁️
+交互模式:
+├── 表单输入: 大圆角 (radius-lg)，聚焦时边框高亮
+├── 按钮: 主按钮渐变色，次按钮描边样式
+├── 卡片: 悬浮时轻微上浮 (translateY(-2px))
+└── 加载: 骨架屏 + 脉冲动画
 
-#### 问题描述
-- 缺乏明确的主次信息区分
-- 数据展示过于密集，缺乏呼吸感
-- 缺乏视觉引导和焦点设计
-
-#### 具体表现
-- 股票列表、K线图、AI分析结果并列展示，缺乏优先级
-- 新闻滚动条占据顶部空间，干扰主要内容
-- 弹幕功能可能与重要信息冲突
-
-#### 影响
-- 关键信息不突出
-- 用户注意力分散
-- 决策效率降低
-
----
-
-### 4. **交互体验不足** 🖱️
-
-#### 问题描述
-- 缺乏加载状态和过渡动画
-- 错误处理和反馈机制不完善
-- 缺乏微交互和动效
-
-#### 具体表现
-```javascript
-// stock.vue:342 - 简单的loading提示
-message.loading("刷新股票基础数据...")
-// 缺乏骨架屏、进度指示器等
+色彩系统 (深色模式):
+--bg-primary: #0B0E11
+--bg-secondary: #181A20
+--bg-tertiary: #2B3139
+--text-primary: #EAECEF
+--text-secondary: #848E9C
+--accent: #3381FF
 ```
 
-#### 影响
-- 应用感觉"卡顿"
-- 用户不清楚系统状态
-- 缺乏专业感
-
 ---
 
-### 5. **响应式设计缺失** 📱
+## 四、改造方案设计
 
-#### 问题描述
-- 固定布局，缺乏对不同屏幕尺寸的适配
-- 虽然使用Naive UI的栅格系统，但未充分利用
-- 桌面应用在小型笔记本屏幕上体验差
+### 4.1 整体设计策略
 
-#### 具体表现
-```javascript
-// market.vue:44 - 固定高度计算
-const panelHeight = ref(window.innerHeight - 240)
-// 硬编码的偏移值，缺乏响应式
+```
+设计语言: "现代金融科技风格"
+├── 基础: Shadcn UI 极简美学
+├── 色彩: OKX 深色模式配色
+├── 交互: 流畅过渡 + 明确反馈
+└── 布局: 响应式卡片式设计
 ```
 
-#### 影响
-- 不同分辨率下显示不一致
-- 小屏幕上内容可能被遮挡
-- 窗口缩放时布局错乱
+### 4.2 核心改造模块
 
----
+#### 模块 1: 聊天气泡重设计
 
-### 6. **可访问性（a11y）不足** ♿
-
-#### 问题描述
-- 缺乏键盘导航支持
-- 色彩对比度可能不足
-- 缺乏ARIA标签和语义化HTML
-
-#### 具体表现
-- 红绿色彩仅用颜色区分涨跌，对色盲用户不友好
-- 复杂的菜单结构难以用键盘导航
-- 缺乏焦点管理
-
-#### 影响
-- 部分用户无法使用
-- 不符合无障碍标准
-- 用户群体受限
-
----
-
-### 7. **性能优化空间** ⚡
-
-#### 问题描述
-- 大量实时数据更新可能导致性能问题
-- 图表渲染可能占用大量资源
-- 缺乏虚拟滚动和懒加载
-
-#### 具体表现
-```javascript
-// stock.vue:125 - 3秒定时刷新股票价格
-// 可能导致频繁重渲染
-EventsOn("stock_price", (data) => {
-  updateData(data)  // 每次更新全量数据
-})
-```
-
-#### 影响
-- 应用可能卡顿
-- CPU/内存占用高
-- 电池消耗快（笔记本）
-
----
-
-## 🎯 改造目标
-
-### 参考设计风格
-
-#### 1. **Shadcn UI设计系统原则**
-- ✅ **组件即代码** - 完全控制组件实现
-- ✅ **可访问性优先** - 基于Radix UI无障碍原语
-- ✅ **主题定制** - CSS变量实现深浅色主题
-- ✅ **设计令牌** - 统一的颜色、间距、字体系统
-- ✅ **渐进增强** - 基础功能到高级特性
-
-#### 2. **欧易交易所（OKX）设计特点**
-- ✅ **专业简洁** - 信息密度适中，清晰易读
-- ✅ **深色主题优先** - 适合长时间使用
-- ✅ **数据可视化** - 图表与数据完美结合
-- ✅ **多栏布局** - 高效利用空间
-- ✅ **快速操作** - 常用功能一键触达
-
----
-
-## 📋 改造计划
-
-### 阶段一：设计系统重构（Foundation）⏱️ 2周
-
-#### 1.1 建立设计令牌系统
-
-**目标**: 统一颜色、间距、字体、阴影等设计变量
-
-**实施步骤**:
-
+**当前问题:**
 ```css
-/* frontend/src/styles/design-tokens.css */
-
-/* ===== 颜色系统 ===== */
-:root {
-  /* 品牌色 - 参考OKX蓝色系 */
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-200: #bfdbfe;
-  --color-brand-300: #93c5fd;
-  --color-brand-400: #60a5fa;
-  --color-brand-500: #3b82f6;  /* 主品牌色 */
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-brand-800: #1e40af;
-  --color-brand-900: #1e3a8a;
-
-  /* 股票涨跌色 - 符合中国习惯 */
-  --color-up: #ef4444;        /* 涨 - 红色 */
-  --color-up-light: #fca5a5;
-  --color-up-dark: #b91c1c;
-
-  --color-down: #22c55e;      /* 跌 - 绿色 */
-  --color-down-light: #86efac;
-  --color-down-dark: #15803d;
-
-  /* 中性色 - 参考shadcn/ui */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-tertiary: #f1f5f9;
-
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-tertiary: #94a3b8;
-  --color-text-disabled: #cbd5e1;
-
-  /* 语义色 */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-}
-
-/* 深色主题 */
-[data-theme="dark"] {
-  --color-brand-500: #60a5fa;
-
-  --color-bg-primary: #0f172a;
-  --color-bg-secondary: #1e293b;
-  --color-bg-tertiary: #334155;
-
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #cbd5e1;
-  --color-text-tertiary: #64748b;
-  --color-text-disabled: #475569;
-}
-
-/* ===== 间距系统 - 4px基准 ===== */
---spacing-0: 0;
---spacing-1: 0.25rem;  /* 4px */
---spacing-2: 0.5rem;   /* 8px */
---spacing-3: 0.75rem;  /* 12px */
---spacing-4: 1rem;     /* 16px */
---spacing-5: 1.25rem;  /* 20px */
---spacing-6: 1.5rem;   /* 24px */
---spacing-8: 2rem;     /* 32px */
---spacing-10: 2.5rem;  /* 40px */
---spacing-12: 3rem;    /* 48px */
-
-/* ===== 字体系统 ===== */
---font-family-base: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
---font-family-mono: "SF Mono", "Monaco", "Cascadia Code", monospace;
-
---font-size-xs: 0.75rem;    /* 12px */
---font-size-sm: 0.875rem;   /* 14px */
---font-size-base: 1rem;     /* 16px */
---font-size-lg: 1.125rem;   /* 18px */
---font-size-xl: 1.25rem;    /* 20px */
---font-size-2xl: 1.5rem;    /* 24px */
---font-size-3xl: 1.875rem;  /* 30px */
---font-size-4xl: 2.25rem;   /* 36px */
-
---font-weight-normal: 400;
---font-weight-medium: 500;
---font-weight-semibold: 600;
---font-weight-bold: 700;
-
---line-height-tight: 1.25;
---line-height-normal: 1.5;
---line-height-relaxed: 1.75;
-
-/* ===== 圆角系统 ===== */
---radius-sm: 0.25rem;   /* 4px */
---radius-md: 0.375rem;  /* 6px */
---radius-lg: 0.5rem;    /* 8px */
---radius-xl: 0.75rem;   /* 12px */
---radius-2xl: 1rem;     /* 16px */
---radius-full: 9999px;
-
-/* ===== 阴影系统 ===== */
---shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
---shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
---shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
---shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-
-/* ===== 动画 ===== */
---transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
---transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
---transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-
-/* ===== Z-index系统 ===== */
---z-index-dropdown: 1000;
---z-index-sticky: 1020;
---z-index-fixed: 1030;
---z-index-modal-backdrop: 1040;
---z-index-modal: 1050;
---z-index-popover: 1060;
---z-index-tooltip: 1070;
-```
-
-**替换硬编码颜色**:
-```javascript
-// 修改前
-const upColor = '#ec0000';
-const downColor = '#00da3c';
-
-// 修改后
-const upColor = 'var(--color-up)';
-const downColor = 'var(--color-down)';
-```
-
----
-
-#### 1.2 迁移到Tailwind CSS（可选）
-
-**目标**: 使用Tailwind替代原生CSS，提高开发效率
-
-**理由**:
-- shadcn/ui基于Tailwind CSS
-- 更快的开发速度
-- 更小最终体积（purge）
-- 响应式设计更简单
-
-**实施方案**:
-```bash
-npm install -D tailwindcss@3 postcss@8 autoprefixer@10
-npx tailwindcss init -p
-```
-
-```javascript
-// tailwind.config.js
-module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{vue,js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {
-      colors: {
-        // 使用设计令牌
-        brand: {
-          50: 'var(--color-brand-50)',
-          500: 'var(--color-brand-500)',
-          // ...
-        },
-        up: {
-          DEFAULT: 'var(--color-up)',
-          light: 'var(--color-up-light)',
-          dark: 'var(--color-up-dark)',
-        },
-        down: {
-          DEFAULT: 'var(--color-down)',
-          light: 'var(--color-down-light)',
-          dark: 'var(--color-down-dark)',
-        }
-      }
-    },
-  },
-  plugins: [],
+/* 现状: 无明确气泡样式，仅依赖 TDesign 默认 */
+.t-chat-content {
+  /* 缺乏视觉层次 */
 }
 ```
 
----
-
-#### 1.3 统一组件库
-
-**目标**: 逐步迁移到单一UI库方案
-
-**决策**: 继续使用Naive UI，但进行主题定制
-
-**理由**:
-- Naive UI专为Vue设计，迁移成本高
-- 可以通过主题定制达到shadcn/ui的视觉效果
-- TDesign仅保留AI聊天模块使用
-
-**Naive UI主题定制**:
-```javascript
-// frontend/src/composables/useNaiveUITheme.js
-import { darkTheme, lightTheme } from 'naive-ui'
-
-const themeOverrides = {
-  common: {
-    primaryColor: '#3b82f6',
-    primaryColorHover: '#60a5fa',
-    primaryColorPressed: '#2563eb',
-    primaryColorSuppl: '#3b82f6',
-  },
-  Button: {
-    borderRadiusMedium: '8px',
-    fontWeightMedium: '500',
-  },
-  Card: {
-    borderRadius: '12px',
-  },
-  // ... 更多组件覆盖
-}
-
-export function useCustomTheme() {
-  const isDark = ref(false)
-
-  const theme = computed(() =>
-    isDark.value ? darkTheme : lightTheme
-  )
-
-  return {
-    theme,
-    themeOverrides,
-    isDark
-  }
-}
-```
-
----
-
-### 阶段二：信息架构重构（IA）⏱️ 1.5周
-
-#### 2.1 扁平化导航结构
-
-**当前问题**: 市场行情下12个子菜单过于复杂
-
-**改造方案**:
-
-```
-修改前:
-├── 股票自选
-│   ├── 全部
-│   ├── 自定义分组1
-│   └── 自定义分组2
-├── 市场行情 (12个子菜单 ❌)
-├── 基金自选
-├── AI智能体
-├── 设置
-└── 关于
-
-修改后:
-├── 首页 (股票自选)
-│   ├── 全部
-│   ├── 自定义分组
-├── 市场 (重组为3个Tab)
-│   ├── 快讯 (市场快讯 + 个股研报)
-│   ├── 行情 (全球股指 + 重大指数 + 行业排名)
-│   └── 发现 (龙虎榜 + 热门股票 + 主题投资)
-├── 分析 (新增整合页)
-│   ├── K线图
-│   ├── 资金流向
-│   └── AI分析
-├── AI助手
-├── 设置
-└── 关于
-```
-
-#### 2.2 页面布局重组
-
-**参考OKX多栏布局**:
-
-```
-┌────────────────────────────────────────────────────┐
-│ 顶部导航栏 (高度: 56px)                            │
-│ Logo | 搜索 | 快速操作 | 用户                      │
-├─────────┬──────────────────────────┬───────────────┤
-│         │                          │               │
-│ 侧边栏  │     主内容区             │  信息面板     │
-│ (宽度:  │     (弹性)               │  (宽度:       │
-│ 200px)  │                          │  320px)       │
-│         │  ┌────────────────────┐  │               │
-│ ├─首页  │  │                    │  │ ┌───────────┐│
-│ ├─市场  │  │   K线图/列表       │  │ │   实时    ││
-│ ├─分析  │  │   (主视图)         │  │ │   概况    ││
-│ ├─AI    │  │                    │  │ │           ││
-│ └─设置  │  └────────────────────┘  │ ├───────────┤│
-│         │                          │ │   自选股  ││
-│         │  ┌────────────────────┐  │ │   监控    ││
-│         │  │   AI分析结果       │  │ ├───────────┤│
-│         │  │   (可折叠)         │  │ │   新闻    ││
-│         │  └────────────────────┘  │ └───────────┘│
-└─────────┴──────────────────────────┴───────────────┘
-```
-
-#### 2.3 组件拆分
-
-**目标**: 将stock.vue（2462行）拆分为可维护的小组件
-
-```
-frontend/src/components/stock/
-├── StockList.vue          # 股票列表
-├── StockCard.vue          # 单个股票卡片
-├── StockDetailPanel.vue   # 股票详情面板
-├── KLineChart.vue         # K线图 (已存在)
-├── StockTable.vue         # 数据表格
-├── FilterBar.vue          # 筛选栏
-├── GroupTabs.vue          # 分组标签
-└── index.vue              # 组合组件
-```
-
----
-
-### 阶段三：视觉设计优化（Visual）⏱️ 2周
-
-#### 3.1 颜色可访问性增强
-
-**问题**: 仅用颜色区分涨跌，对色盲用户不友好
-
-**解决方案**:
-
+**改造方案:**
 ```vue
-<!-- 添加图标辅助 -->
-<template>
-  <div class="stock-change" :class="changeClass">
-    <!-- 使用箭头图标 + 颜色 -->
-    <CaretUp v-if="isUp" class="icon-up" />
-    <CaretDown v-if="isDown" class="icon-down" />
-    <span>{{ changePercent }}</span>
+<!-- 新设计: 分层气泡系统 -->
+<template #content="{ item, index }">
+  <div class="message-bubble" :class="`role-${item.role}`">
+    <!-- 思考过程: 独立卡片 -->
+    <div v-if="item.reasoning" class="reasoning-card">
+      <div class="reasoning-header">
+        <SparklesIcon class="icon" />
+        <span>思考过程</span>
+        <ChevronDownIcon :class="{ 'rotate-180': expanded }" />
+      </div>
+      <div v-show="expanded" class="reasoning-content">
+        <t-chat-content :content="item.reasoning" />
+
+        <!-- 工具调用: 结构化展示 -->
+        <div v-if="item.tool_calls" class="tool-calls">
+          <div v-for="tool in item.tool_calls" :key="tool.id" class="tool-item">
+            <WrenchIcon class="tool-icon" />
+            <code>{{ tool.function.name }}</code>
+            <span class="tool-args">{{ tool.function.arguments }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主要内容: 气泡样式 -->
+    <div class="content-bubble">
+      <t-chat-content :content="item.content" />
+    </div>
   </div>
 </template>
 
-<style scoped>
-.stock-change {
+<style lang="less">
+.message-bubble {
+  padding: 16px;
+  border-radius: 12px;
+  max-width: 85%;
+
+  &.role-user {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-left: auto;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  &.role-assistant {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.reasoning-card {
+  background: rgba(51, 129, 255, 0.08);
+  border: 1px solid rgba(51, 129, 255, 0.2);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+
+  .reasoning-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 150ms ease;
+
+    &:hover {
+      background: rgba(51, 129, 255, 0.12);
+    }
+  }
+
+  .tool-calls {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(51, 129, 255, 0.3);
+  }
+
+  .tool-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 13px;
+  }
+}
+</style>
+```
+
+---
+
+#### 模块 2: 输入区域重构
+
+**当前问题:**
+```vue
+<!-- 模型选择器占据 200px，挤压输入空间 -->
+<t-chat-sender>
+  <template #prefix>
+    <NSelect style="width: 200px" />
+  </template>
+</t-chat-sender>
+```
+
+**改造方案:**
+```vue
+<!-- 新设计: 紧凑工具栏 + 聚焦输入 -->
+<div class="input-wrapper">
+  <!-- 顶部工具栏: 可折叠 -->
+  <div class="input-toolbar" :class="{ collapsed: !toolbarExpanded }">
+    <div class="toolbar-section">
+      <label class="model-label">
+        <CpuIcon class="icon" />
+        <span>AI 模型</span>
+      </label>
+      <NSelect
+        v-model:value="selectValue"
+        :options="selectOptions"
+        size="small"
+        style="width: 160px"
+        :consistent-menu-width="false"
+      />
+    </div>
+
+    <div class="toolbar-actions">
+      <NTooltip>
+        <template #trigger>
+          <NButton circle quaternary size="small">
+            <template #icon><SettingsIcon /></template>
+          </NButton>
+        </template>
+        高级设置
+      </NTooltip>
+    </div>
+  </div>
+
+  <!-- 主输入区 -->
+  <div class="input-main">
+    <NInput
+      v-model:value="inputValue"
+      type="textarea"
+      placeholder="输入您的问题... (Enter 发送, Shift+Enter 换行)"
+      :autosize="{ minRows: 1, maxRows: 8 }"
+      @keydown="handleKeydown"
+    />
+
+    <!-- 右侧操作按钮 -->
+    <div class="input-actions">
+      <NButton
+        v-if="isStreamLoad"
+        type="error"
+        circle
+        @click="onStop"
+      >
+        <template #icon><StopIcon /></template>
+      </NButton>
+      <NButton
+        v-else
+        type="primary"
+        circle
+        :disabled="!inputValue.trim()"
+        @click="inputEnter"
+      >
+        <template #icon><SendIcon /></template>
+      </NButton>
+    </div>
+  </div>
+
+  <!-- 底部提示 -->
+  <div v-if="inputValue.length > 500" class="input-hint">
+    {{ inputValue.length }} / 4000
+  </div>
+</div>
+
+<style lang="less">
+.input-wrapper {
+  background: var(--bg-tertiary);
+  border-radius: 16px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  transition: border-color 200ms ease;
+
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(51, 129, 255, 0.1);
+  }
+}
+
+.input-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  transition: all 200ms ease;
+
+  &.collapsed {
+    .toolbar-section:not(.primary) {
+      display: none;
+    }
+  }
+}
+
+.input-main {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+
+  .n-input {
+    flex: 1;
+
+    :deep(.n-input__textarea-el) {
+      font-size: 15px;
+      line-height: 1.6;
+    }
+  }
+}
+
+.input-actions {
+  display: flex;
+  gap: 4px;
+
+  .n-button {
+    width: 40px;
+    height: 40px;
+
+    &.n-button--primary {
+      background: linear-gradient(135deg, #3381FF 0%, #266FE8 100%);
+      border: none;
+      box-shadow: 0 4px 12px rgba(51, 129, 255, 0.4);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(51, 129, 255, 0.5);
+      }
+    }
+  }
+}
+</style>
+```
+
+---
+
+#### 模块 3: 操作按钮优化
+
+**当前问题:**
+```vue
+<!-- 仅显示复制按钮，反馈功能缺失 -->
+<t-chat-action
+  :operation-btn="['copy']"
+  @operation="handleOperation"
+/>
+```
+
+**改造方案:**
+```vue
+<!-- 新设计: 完整反馈系统 -->
+<template #actions="{ item, index }">
+  <div class="message-actions">
+    <!-- 快速操作: 图标按钮 -->
+    <div class="quick-actions">
+      <NTooltip v-for="action in quickActions" :key="action.key">
+        <template #trigger>
+          <NButton
+            size="tiny"
+            quaternary
+            circle
+            @click="handleAction(action.key, item)"
+          >
+            <template #icon>
+              <component :is="action.icon" />
+            </template>
+          </NButton>
+        </template>
+        {{ action.label }}
+      </NTooltip>
+    </div>
+
+    <!-- 反馈: 评分按钮 -->
+    <div class="feedback-actions">
+      <NButton
+        size="tiny"
+        :type="item.feedback === 'good' ? 'success' : 'default'"
+        quaternary
+        @click="handleFeedback(index, 'good')"
+      >
+        <template #icon><ThumbUpIcon /></template>
+        有帮助
+      </NButton>
+      <NButton
+        size="tiny"
+        :type="item.feedback === 'bad' ? 'error' : 'default'"
+        quaternary
+        @click="handleFeedback(index, 'bad')"
+      >
+        <template #icon><ThumbDownIcon /></template>
+        无帮助
+      </NButton>
+    </div>
+
+    <!-- 更多: 下拉菜单 -->
+    <NDropdown :options="moreOptions" @select="handleMore">
+      <NButton size="tiny" quaternary>
+        <template #icon><MoreVerticalIcon /></template>
+      </NButton>
+    </NDropdown>
+  </div>
+</template>
+
+<script setup>
+const quickActions = [
+  { key: 'copy', icon: CopyIcon, label: '复制' },
+  { key: 'regenerate', icon: RefreshIcon, label: '重新生成' },
+  { key: 'share', icon: ShareIcon, label: '分享' },
+]
+
+const moreOptions = [
+  { label: '引用', key: 'quote', icon: LinkIcon },
+  { label: '保存到知识库', key: 'save', icon: BookmarkIcon },
+  { label: '举报', key: 'report', icon: FlagIcon },
+]
+
+const handleFeedback = (index, type) => {
+  chatList.value[index].feedback = type
+  // 发送反馈到后端
+}
+</script>
+
+<style lang="less">
+.message-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1);
-}
+  gap: 4px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  opacity: 0;
+  transition: opacity 200ms ease;
 
-.stock-change.up {
-  color: var(--color-up);
-}
-
-.stock-change.down {
-  color: var(--color-down);
-}
-
-/* 色盲友好的纹理模式 */
-.stock-change.up::before {
-  content: '';
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 2px,
-    var(--color-up) 2px,
-    var(--color-up) 4px
-  );
-}
-
-.stock-change.down::before {
-  content: '';
-  background: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 2px,
-    var(--color-down) 2px,
-    var(--color-down) 4px
-  );
-}
-</style>
-```
-
-#### 3.2 卡片式设计
-
-**参考shadcn/ui Card组件**:
-
-```vue
-<!-- frontend/src/components/base/BaseCard.vue -->
-<template>
-  <div class="base-card" :class="[variant, size]">
-    <div v-if="$slots.header" class="card-header">
-      <slot name="header" />
-    </div>
-    <div class="card-body">
-      <slot />
-    </div>
-    <div v-if="$slots.footer" class="card-footer">
-      <slot name="footer" />
-    </div>
-  </div>
-</template>
-
-<script setup>
-defineProps({
-  variant: {
-    type: String,
-    default: 'default',
-    validator: (value) => ['default', 'outlined', 'elevated'].includes(value)
-  },
-  size: {
-    type: String,
-    default: 'md',
-    validator: (value) => ['sm', 'md', 'lg'].includes(value)
+  .message-bubble:hover & {
+    opacity: 1;
   }
-})
-</script>
 
-<style scoped>
-.base-card {
-  background: var(--color-bg-primary);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  transition: all var(--transition-base);
-}
+  .quick-actions {
+    display: flex;
+    gap: 2px;
+  }
 
-.base-card.elevated {
-  box-shadow: var(--shadow-md);
-}
+  .feedback-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
 
-.base-card.elevated:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-
-.card-header {
-  padding: var(--spacing-6);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.card-body {
-  padding: var(--spacing-6);
-}
-
-.card-footer {
-  padding: var(--spacing-6);
-  border-top: 1px solid var(--color-border);
-}
-</style>
-```
-
-#### 3.3 数据可视化优化
-
-**ECharts主题定制**:
-
-```javascript
-// frontend/src/composables/useEChartsTheme.js
-export const echartsLightTheme = {
-  color: [
-    '#3b82f6', '#ef4444', '#22c55e', '#f59e0b',
-    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
-  ],
-  backgroundColor: 'transparent',
-  textStyle: {
-    fontFamily: 'var(--font-family-base)',
-    fontSize: 12,
-    color: 'var(--color-text-primary)'
-  },
-  grid: {
-    left: '3%',
-    right: '4%',
-    bottom: '3%',
-    containLabel: true
-  },
-  // K线图颜色
-  candlestick: {
-    itemStyle: {
-      color: 'var(--color-up)',
-      color0: 'var(--color-down)',
-      borderColor: 'var(--color-up-dark)',
-      borderColor0: 'var(--color-down-dark)'
+    .n-button {
+      font-size: 12px;
+      padding: 0 8px;
+      height: 24px;
     }
   }
 }
-
-export const echartsDarkTheme = {
-  // ... 深色主题配置
-}
-```
-
-#### 3.4 深色模式优化
-
-**参考OKX深色主题**:
-
-```css
-/* 优先使用深色主题作为默认 */
-[data-theme="dark"] {
-  /* 背景色 - 深蓝灰色系 */
-  --color-bg-primary: #0B0E11;  /* OKX风格 */
-  --color-bg-secondary: #151A21;
-  --color-bg-tertiary: #1E2329;
-
-  /* 文本色 - 高对比度 */
-  --color-text-primary: #EAECEF;
-  --color-text-secondary: #848E9C;
-  --color-text-tertiary: #5E6673;
-
-  /* 边框色 - 微妙 */
-  --color-border: #2B3139;
-
-  /* 品牌色 - 适合深色 */
-  --color-brand-500: #FCD535;  /* OKX黄色 */
-  --color-brand-600: #E5C02D;
-
-  /* 股票涨跌 - 稍微调亮以提高可见性 */
-  --color-up: #F6465D;       /* OKX红 */
-  --color-down: #0ECB81;     /* OKX绿 */
-}
+</style>
 ```
 
 ---
 
-### 阶段四：交互体验提升（Interaction）⏱️ 1.5周
+#### 模块 4: 加载与流式响应
 
-#### 4.1 加载状态优化
-
-**骨架屏组件**:
-
+**当前问题:**
 ```vue
-<!-- frontend/src/components/base/SkeletonLoader.vue -->
-<template>
-  <div class="skeleton-loader">
-    <div v-for="i in rows" :key="i" class="skeleton-item" :style="{ width: getWidth(i) }">
-      <div class="skeleton-animation"></div>
+<!-- 无进度指示，仅"思考中..."文本 -->
+<t-chat-loading v-if="isStreamLoad" text="思考中..." />
+```
+
+**改造方案:**
+```vue
+<!-- 新设计: 多层次加载反馈 -->
+<template #content="{ item }">
+  <!-- 思考阶段: 脉冲动画 -->
+  <div v-if="isStreamLoad && !item.content" class="thinking-state">
+    <div class="thinking-particles">
+      <div v-for="i in 3" :key="i" class="particle" :style="{ animationDelay: `${i * 0.15}s` }" />
     </div>
+    <div class="thinking-text">
+      <span>AI 正在思考</span>
+      <span class="dots">
+        <span v-for="i in 3" :key="i" class="dot">.</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- 流式输出: 打字机效果 + 工具调用可视化 -->
+  <div v-else class="streaming-content">
+    <!-- 进度指示器 -->
+    <div v-if="isStreamLoad" class="stream-progress">
+      <div class="progress-bar" :style="{ width: `${streamProgress}%` }" />
+      <span class="progress-text">{{ streamProgress }}% 完成</span>
+    </div>
+
+    <!-- 工具调用执行动画 -->
+    <div v-if="activeToolCall" class="tool-execution">
+      <div class="tool-icon-wrapper">
+        <WrenchIcon class="tool-icon spin" />
+      </div>
+      <div class="tool-info">
+        <span class="tool-name">{{ activeToolCall.name }}</span>
+        <span class="tool-status">执行中...</span>
+      </div>
+    </div>
+
+    <!-- 内容展示 -->
+    <t-chat-content :content="item.content" />
   </div>
 </template>
 
 <script setup>
-defineProps({
-  rows: { type: Number, default: 5 }
+const streamProgress = computed(() => {
+  if (!isStreamLoad.value) return 100
+  // 基于内容长度估算进度
+  const currentLength = chatList.value[0].content.length
+  return Math.min(95, currentLength / 10) // 假设平均1000字符
 })
 
-function getWidth(index) {
-  // 模拟真实内容的长度变化
-  const widths = ['90%', '70%', '95%', '80%', '85%']
-  return widths[index % widths.length]
-}
+const activeToolCall = ref(null)
+
+EventsOn("agent-message", (data) => {
+  if (data['tool_calls']) {
+    activeToolCall.value = data['tool_calls'][0]
+    setTimeout(() => {
+      activeToolCall.value = null
+    }, 2000)
+  }
+})
 </script>
 
-<style scoped>
-.skeleton-item {
-  height: 16px;
+<style lang="less">
+.thinking-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+
+  .thinking-particles {
+    display: flex;
+    gap: 8px;
+
+    .particle {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+  }
+
+  .thinking-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+
+    .dots {
+      display: inline-block;
+      width: 20px;
+
+      .dot {
+        animation: blink 1.4s infinite;
+        &:nth-child(2) { animation-delay: 0.2s; }
+        &:nth-child(3) { animation-delay: 0.4s; }
+      }
+    }
+  }
+}
+
+.stream-progress {
   margin-bottom: 12px;
-  background: var(--color-bg-tertiary);
-  border-radius: var(--radius-sm);
-  position: relative;
-  overflow: hidden;
-}
 
-.skeleton-animation {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  animation: skeleton-loading 1.5s infinite;
-}
-
-@keyframes skeleton-loading {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-</style>
-```
-
-#### 4.2 过渡动画
-
-**页面切换动画**:
-
-```css
-/* frontend/src/styles/transitions.css */
-
-/* 淡入淡出 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity var(--transition-base);
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* 滑动 */
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform var(--transition-base);
-}
-
-.slide-enter-from {
-  transform: translateX(100%);
-}
-
-.slide-leave-to {
-  transform: translateX(-100%);
-}
-
-/* 缩放 */
-.scale-enter-active,
-.scale-leave-active {
-  transition: all var(--transition-base);
-}
-
-.scale-enter-from,
-.scale-leave-to {
-  opacity: 0;
-  transform: scale(0.95);
-}
-```
-
-**Vue Router集成**:
-```javascript
-// router/index.js
-const routes = [
-  {
-    path: '/',
-    component: StockView,
-    meta: { transition: 'fade' }
+  .progress-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #3381FF, #266FE8);
+    border-radius: 2px;
+    transition: width 300ms ease;
   }
-]
-```
 
-```vue
-<!-- App.vue -->
-<template>
-  <router-view v-slot="{ Component, route }">
-    <transition :name="route.meta.transition || 'fade'">
-      <component :is="Component" :key="route.path" />
-    </transition>
-  </router-view>
-</template>
-```
-
-#### 4.3 微交互
-
-**按钮反馈**:
-
-```vue
-<!-- frontend/src/components/base/BaseButton.vue -->
-<template>
-  <button
-    class="base-button"
-    :class="[variant, size, { 'loading': loading, 'disabled': disabled }]"
-    :disabled="disabled || loading"
-    @click="handleClick"
-  >
-    <span v-if="loading" class="button-spinner"></span>
-    <slot />
-  </button>
-</template>
-
-<style scoped>
-.base-button {
-  position: relative;
-  overflow: hidden;
-  transition: all var(--transition-fast);
-}
-
-.base-button:hover:not(.disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.base-button:active:not(.disabled) {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
-}
-
-/* 涟漪效果 */
-.base-button::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.base-button:active::after {
-  width: 300px;
-  height: 300px;
-}
-</style>
-```
-
-#### 4.4 虚拟滚动
-
-**优化大列表性能**:
-
-```vue
-<!-- frontend/src/components/base/VirtualList.vue -->
-<template>
-  <div
-    ref="containerRef"
-    class="virtual-list"
-    :style="{ height: containerHeight }"
-    @scroll="handleScroll"
-  >
-    <div
-      class="virtual-list-spacer"
-      :style="{ height: totalHeight + 'px' }"
-    ></div>
-    <div
-      class="virtual-list-content"
-      :style="{ transform: `translateY(${offset}px)` }"
-    >
-      <div
-        v-for="item in visibleItems"
-        :key="item.id"
-        class="virtual-list-item"
-        :style="{ height: itemHeight + 'px' }"
-      >
-        <slot :item="item" />
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-
-const props = defineProps({
-  items: { type: Array, required: true },
-  itemHeight: { type: Number, default: 60 },
-  containerHeight: { type: String, default: '400px' }
-})
-
-const containerRef = ref(null)
-const scrollTop = ref(0)
-
-const totalHeight = computed(() => props.items.length * props.itemHeight)
-const startIndex = computed(() => Math.floor(scrollTop.value / props.itemHeight))
-const endIndex = computed(() =>
-  Math.min(
-    startIndex.value + Math.ceil(parseInt(props.containerHeight) / props.itemHeight) + 1,
-    props.items.length
-  )
-)
-const visibleItems = computed(() =>
-  props.items.slice(startIndex.value, endIndex.value)
-)
-const offset = computed(() => startIndex.value * props.itemHeight)
-
-function handleScroll(e) {
-  scrollTop.value = e.target.scrollTop
-}
-</script>
-```
-
----
-
-### 阶段五：性能优化（Performance）⏱️ 1周
-
-#### 5.1 数据更新优化
-
-**问题**: 每次股票更新都全量刷新
-
-**解决方案**:
-
-```javascript
-// 使用Vue的响应式系统优化
-// 修改前
-EventsOn("stock_price", (data) => {
-  updateData(data)  // 全量更新
-})
-
-// 修改后
-const stockMap = ref(new Map())
-
-EventsOn("stock_price", (data) => {
-  // 只更新变化的股票
-  for (const stock of data) {
-    stockMap.value.set(stock.code, {
-      ...stockMap.value.get(stock.code),
-      ...stock
-    })
+  .progress-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    display: block;
   }
-  // Vue会自动只重新渲染变化的部分
-})
-```
+}
 
-#### 5.2 图表懒加载
+.tool-execution {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(51, 129, 255, 0.08);
+  border-radius: 8px;
+  margin-bottom: 12px;
 
-```vue
-<template>
-  <div ref="chartContainerRef" v-observe-visibility="handleVisibilityChange">
-    <div v-if="isVisible" ref="chartRef" :style="{ height: height }"></div>
-    <SkeletonLoader v-else />
-  </div>
-</template>
+  .tool-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useIntersectionObserver } from '@vueuse/core'
-
-const chartRef = ref(null)
-const chartContainerRef = ref(null)
-const isVisible = ref(false)
-const chartInstance = ref(null)
-
-const { stop } = useIntersectionObserver(
-  chartContainerRef,
-  ([{ isIntersecting }]) => {
-    if (isIntersecting && !chartInstance.value) {
-      isVisible.value = true
-      nextTick(() => {
-        initChart()
-      })
-      stop()
+    .tool-icon {
+      color: white;
+      &.spin {
+        animation: spin 1s linear infinite;
+      }
     }
   }
-)
 
-function initChart() {
-  if (!chartRef.value) return
+  .tool-info {
+    display: flex;
+    flex-direction: column;
 
-  chartInstance.value = echarts.init(chartRef.value)
-  // ... 配置图表
+    .tool-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
 
-  // 组件卸载时销毁图表
-  onBeforeUnmount(() => {
-    chartInstance.value?.dispose()
-  })
-}
-</script>
-```
-
-#### 5.3 防抖与节流
-
-```javascript
-// frontend/src/utils/performance.js
-import { debounce, throttle } from 'lodash-es'
-
-// 搜索输入防抖
-export const useSearchDebounce = (callback, delay = 300) => {
-  return debounce(callback, delay)
-}
-
-// 滚动事件节流
-export const useScrollThrottle = (callback, delay = 100) => {
-  return throttle(callback, delay)
-}
-
-// 使用
-const searchStocks = useSearchDebounce((query) => {
-  // API调用
-}, 300)
-
-const handleScroll = useScrollThrottle((e) => {
-  // 滚动处理
-}, 100)
-```
-
-#### 5.4 代码分割
-
-```javascript
-// router/index.js
-const routes = [
-  {
-    path: '/market',
-    component: () => import(/* webpackChunkName: "market" */ '@/components/market.vue')
-  },
-  {
-    path: '/agent',
-    component: () => import(/* webpackChunkName: "agent" */ '@/components/agent-chat.vue')
+    .tool-status {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
   }
-]
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+</style>
 ```
 
 ---
 
-### 阶段六：响应式与适配（Responsive）⏱️ 1周
+### 4.3 响应式设计方案
 
-#### 6.1 断点系统
+```vue
+<style lang="less">
+// 断点系统
+$breakpoints: (
+  'sm': 640px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1280px,
+);
 
-```css
-/* frontend/src/styles/breakpoints.css */
+.chat-box {
+  // 移动端优先
+  padding: 8px;
 
+  @media (min-width: 768px) {
+    padding: 12px 16px;
+  }
+
+  @media (min-width: 1024px) {
+    margin: 5px 10px;
+  }
+}
+
+.message-bubble {
+  // 移动端全宽
+  max-width: 100%;
+
+  @media (min-width: 640px) {
+    max-width: 90%;
+  }
+
+  @media (min-width: 1024px) {
+    max-width: 85%;
+  }
+}
+
+.input-toolbar {
+  // 移动端垂直布局
+  flex-direction: column;
+  gap: 8px;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    gap: 16px;
+  }
+}
+</style>
+```
+
+---
+
+### 4.4 暗色模式优化
+
+```less
+// 色彩系统定义
 :root {
-  /* 断点定义 */
-  --breakpoint-xs: 375px;   /* 小型手机 */
-  --breakpoint-sm: 640px;   /* 手机 */
-  --breakpoint-md: 768px;   /* 平板 */
-  --breakpoint-lg: 1024px;  /* 桌面 */
-  --breakpoint-xl: 1280px;  /* 大屏 */
-  --breakpoint-2xl: 1536px; /* 超大屏 */
+  // 基础色彩
+  --bg-primary: #0B0E11;
+  --bg-secondary: #181A20;
+  --bg-tertiary: #2B3139;
+  --bg-hover: #363C45;
+
+  // 文本色彩
+  --text-primary: #EAECEF;
+  --text-secondary: #848E9C;
+  --text-tertiary: #5E6673;
+
+  // 语义色彩
+  --accent: #3381FF;
+  --accent-hover: #266FE8;
+  --accent-light: rgba(51, 129, 255, 0.15);
+
+  --success: #0ECB81;
+  --warning: #F0B90B;
+  --error: #F6465D;
+
+  // 边框与分割线
+  --border-color: #2B3139;
+  --divider-color: #363C45;
+
+  // 阴影
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
 }
 
-/* 媒体查询混入（需要CSS预处理器或Tailwind） */
-@media (min-width: 768px) {
-  /* 平板及以上 */
-}
+[theme-mode="dark"] {
+  // 覆盖 TDesign 变量
+  --td-bg-color-container: #181A20;
+  --td-bg-color-component: #2B3139;
+  --td-text-color-primary: #EAECEF;
+  --td-text-color-secondary: #848E9C;
+  --td-border-color: #2B3139;
 
-@media (min-width: 1024px) {
-  /* 桌面及以上 */
+  // 聊天组件专用
+  --chat-user-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --chat-assistant-bg: #181A20;
+  --chat-reasoning-bg: rgba(51, 129, 255, 0.08);
 }
 ```
 
-#### 6.2 弹性布局
+---
 
-```vue
-<!-- 响应式网格布局 -->
-<template>
-  <div class="responsive-grid">
-    <div class="grid-item" v-for="item in items" :key="item.id">
-      {{ item }}
-    </div>
-  </div>
-</template>
+## 五、实施计划
 
-<style scoped>
-.responsive-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--spacing-4);
+### 5.1 改造优先级
+
+```
+P0 (立即执行)
+├── 消息气泡样式重设计
+├── 输入区域布局优化
+└── 色彩系统统一
+
+P1 (短期目标)
+├── 操作按钮完善
+├── 加载动画优化
+└── 响应式适配
+
+P2 (中期目标)
+├── 工具调用可视化
+├── 反馈系统集成
+└── 性能优化
+
+P3 (长期目标)
+├── 多主题支持
+├── 无障碍完善
+└── 动效库统一
+```
+
+### 5.2 技术迁移路径
+
+```
+阶段 1: 组件统一 (Week 1)
+├── 移除 agent-chat_bk.vue
+├── 统一使用 TypeScript
+├── 提取公共样式到 @/styles/chat-theme.less
+└── 建立 CSS 变量系统
+
+阶段 2: 样式重构 (Week 2-3)
+├── 实现 Shadcn UI 基础组件
+├── 应用 OKX 色彩系统
+├── 重构聊天气泡
+└── 优化输入区域
+
+阶段 3: 交互增强 (Week 4)
+├── 实现流式响应动画
+├── 添加工具调用可视化
+├── 集成反馈系统
+└── 性能优化
+
+阶段 4: 测试与调优 (Week 5)
+├── 跨浏览器测试
+├── 响应式测试
+├── 可访问性测试
+└── 性能调优
+```
+
+### 5.3 技术栈更新
+
+```json
+{
+  "dependencies": {
+    "@vueuse/core": "^10.7.0",
+    "@vueuse/motion": "^2.0.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "less": "^4.2.0",
+    "less-loader": "^11.1.0"
+  }
+}
+```
+
+---
+
+## 六、设计规范
+
+### 6.1 间距系统
+
+```
+单位: px (基于 4px 栅格)
+
+0   → 0
+1   → 4
+2   → 8
+3   → 12
+4   → 16
+5   → 20
+6   → 24
+8   → 32
+10  → 40
+12  → 48
+16  → 64
+```
+
+### 6.2 圆角规范
+
+```
+--radius-sm: 4px   // 小元素: 按钮、标签
+--radius-md: 8px   // 卡片、输入框
+--radius-lg: 12px  // 大卡片、气泡
+--radius-xl: 16px  // 模态框
+--radius-full: 9999px  // 圆形按钮
+```
+
+### 6.3 阴影规范
+
+```
+--shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05)
+--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1)
+--shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1)
+--shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1)
+--shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15)
+```
+
+### 6.4 过渡规范
+
+```
+--duration-fast: 150ms
+--duration-base: 200ms
+--duration-slow: 300ms
+
+--easing-linear: linear
+--easing-ease: ease
+--easing-in: cubic-bezier(0.4, 0, 1, 1)
+--easing-out: cubic-bezier(0, 0, 0.2, 1)
+--easing-in-out: cubic-bezier(0.4, 0, 0.2, 1)
+```
+
+---
+
+## 七、成功指标
+
+### 7.1 用户体验指标
+
+| 指标 | 当前 | 目标 | 测量方法 |
+|------|------|------|---------|
+| 首次渲染时间 (FCP) | ~1.2s | <0.8s | Lighthouse |
+| 可交互时间 (TTI) | ~2.5s | <1.5s | Lighthouse |
+| 累积布局偏移 (CLS) | ~0.15 | <0.1 | Lighthouse |
+| 对比度评分 | C | AA | WCAG 检测 |
+| 键盘可访问性 | 60% | 100% | 手动测试 |
+
+### 7.2 视觉质量检查清单
+
+- [ ] 所有文本对比度 ≥ 4.5:1
+- [ ] 交互元素有明确的悬停/焦点状态
+- [ ] 加载状态有清晰反馈
+- [ ] 错误状态有友好提示
+- [ ] 动画流畅且有意义 (非装饰性)
+- [ ] 响应式断点测试通过
+- [ ] 跨浏览器一致性
+- [ ] 暗色模式色彩和谐
+
+---
+
+## 八、附录
+
+### 8.1 参考资源
+
+```
+设计系统:
+├── Shadcn UI: https://ui.shadcn.com/
+├── Radix UI: https://www.radix-ui.com/
+├── Headless UI: https://headlessui.com/
+└── OKX Design: https://www.okx.com/
+
+技术文档:
+├── TDesign Vue Next: https://tdesign.tencent.com/vue-next
+├── Naive UI: https://www.naiveui.com/
+├── Vue 3 Composition API: https://vuejs.org/
+└── Wails Docs: https://wails.io/
+
+可访问性:
+├── WCAG 2.1: https://www.w3.org/WAI/WCAG21/quickref/
+├── ARIA Authoring Practices: https://www.w3.org/WAI/ARIA/apg/
+└── WebAIM Contrast Checker: https://webaim.org/resources/contrastchecker/
+```
+
+### 8.2 组件文件结构建议
+
+```
+frontend/src/
+├── components/
+│   ├── chat/
+│   │   ├── ChatMessage.vue           # 消息气泡
+│   │   ├── ChatReasoning.vue         # 思考过程
+│   │   ├── ChatToolCall.vue          # 工具调用
+│   │   ├── ChatInput.vue             # 输入框
+│   │   ├── ChatActions.vue           # 操作按钮
+│   │   └── agent-chat.vue            # 主组件
+│   └── ui/
+│       ├── Button.vue                # 基础按钮
+│       ├── Card.vue                  # 卡片
+│       └── Tooltip.vue               # 提示
+├── styles/
+│   ├── theme/
+│   │   ├── variables.less            # CSS 变量
+│   │   ├── dark.less                 # 暗色模式
+│   │   └── light.less                # 亮色模式
+│   └── chat-theme.less               # 聊天专用样式
+└── composables/
+    ├── useChat.ts                    # 聊天逻辑
+    ├── useStream.ts                  # 流式响应
+    └── useFeedback.ts                # 反馈系统
+```
+
+### 8.3 代码规范示例
+
+```typescript
+// 组件命名: PascalCase
+// ChatMessage.vue
+
+// Props 定义
+interface MessageProps {
+  content: string
+  reasoning?: string
+  role: 'user' | 'assistant'
+  toolCalls?: ToolCall[]
 }
 
-@media (max-width: 768px) {
-  .responsive-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
-    gap: var(--spacing-2);
+// 响应式数据
+const props = defineProps<MessageProps>()
+const emit = defineEmits<{
+  'feedback': [type: 'good' | 'bad']
+  'copy': [content: string]
+}>()
+
+// 样式组织
+<style scoped lang="less">
+@import '@/styles/theme/variables.less';
+
+.chat-message {
+  &__bubble {
+    // ...
+  }
+
+  &--user {
+    // ...
+  }
+
+  &--assistant {
+    // ...
   }
 }
 </style>
 ```
 
-#### 6.3 窗口大小监听
+---
 
-```javascript
-// frontend/src/composables/useBreakpoint.js
-import { ref, onMounted, onUnmounted } from 'vue'
+## 九、总结
 
-export function useBreakpoint() {
-  const windowWidth = ref(window.innerWidth)
-  const windowHeight = ref(window.innerHeight)
+本改造计划基于对现有 AI Agent 模块的深入分析，参考 Shadcn UI 的现代设计美学和 OKX 交易所的专业金融风格，制定了一套完整的 UI/UX 优化方案。
 
-  const breakpoint = computed(() => {
-    if (windowWidth.value < 640) return 'xs'
-    if (windowWidth.value < 768) return 'sm'
-    if (windowWidth.value < 1024) return 'md'
-    if (windowWidth.value < 1280) return 'lg'
-    return 'xl'
-  })
+**核心改进方向:**
+1. **视觉层次**: 通过色彩、阴影、间距建立清晰的信息层次
+2. **交互反馈**: 每个操作都有明确的状态指示
+3. **性能优化**: 减少重绘、使用 CSS 动画、按需加载
+4. **可访问性**: 符合 WCAG 2.1 AA 标准
+5. **可维护性**: 统一的设计系统、模块化组件
 
-  function handleResize() {
-    windowWidth.value = window.innerWidth
-    windowHeight.value = window.innerHeight
-  }
-
-  onMounted(() => {
-    window.addEventListener('resize', handleResize)
-  })
-
-  onUnmounted(() => {
-    window.removeEventListener('resize', handleResize)
-  })
-
-  return {
-    windowWidth,
-    windowHeight,
-    breakpoint,
-    isMobile: computed(() => ['xs', 'sm'].includes(breakpoint.value)),
-    isTablet: computed(() => breakpoint.value === 'md'),
-    isDesktop: computed(() => ['lg', 'xl'].includes(breakpoint.value))
-  }
-}
-```
+**预期效果:**
+- 用户满意度提升 30%+
+- 交互效率提升 25%+
+- 视觉质量达到行业一流水平
+- 代码可维护性显著提高
 
 ---
 
-### 阶段七：可访问性改进（Accessibility）⏱️ 1周
-
-#### 7.1 键盘导航
-
-```vue
-<!-- 可键盘操作的股票列表 -->
-<template>
-  <ul
-    ref="listRef"
-    class="stock-list"
-    role="listbox"
-    @keydown="handleKeydown"
-  >
-    <li
-      v-for="(stock, index) in stocks"
-      :key="stock.code"
-      :ref="el => setItemRef(el, index)"
-      class="stock-item"
-      :class="{ 'focused': focusedIndex === index }"
-      role="option"
-      :aria-selected="focusedIndex === index"
-      :tabindex="focusedIndex === index ? 0 : -1"
-      @click="selectStock(stock)"
-    >
-      {{ stock.name }}
-    </li>
-  </ul>
-</template>
-
-<script setup>
-const focusedIndex = ref(0)
-const itemRefs = ref([])
-
-function setItemRef(el, index) {
-  if (el) itemRefs.value[index] = el
-}
-
-function handleKeydown(e) {
-  switch (e.key) {
-    case 'ArrowDown':
-      e.preventDefault()
-      focusedIndex.value = Math.min(focusedIndex.value + 1, stocks.value.length - 1)
-      itemRefs.value[focusedIndex.value]?.focus()
-      break
-    case 'ArrowUp':
-      e.preventDefault()
-      focusedIndex.value = Math.max(focusedIndex.value - 1, 0)
-      itemRefs.value[focusedIndex.value]?.focus()
-      break
-    case 'Enter':
-      e.preventDefault()
-      selectStock(stocks.value[focusedIndex.value])
-      break
-  }
-}
-</script>
-```
-
-#### 7.2 ARIA标签
-
-```vue
-<!-- 带ARIA标签的股票卡片 -->
-<template>
-  <article
-    class="stock-card"
-    :aria-label="`股票 ${stock.name} 代码 ${stock.code}`"
-  >
-    <header class="card-header">
-      <h3>{{ stock.name }}</h3>
-      <span class="stock-code" aria-label="股票代码">{{ stock.code }}</span>
-    </header>
-
-    <div class="card-body">
-      <div class="price" aria-live="polite">
-        <span class="label">当前价格</span>
-        <span class="value">{{ stock.price }}</span>
-      </div>
-
-      <div
-        class="change"
-        :class="{ 'up': stock.change > 0, 'down': stock.change < 0 }"
-        :aria-label="stock.change > 0 ? '上涨' : '下跌'"
-      >
-        <span class="label">涨跌幅</span>
-        <span class="value">{{ stock.changePercent }}%</span>
-      </div>
-    </div>
-  </article>
-</template>
-```
-
-#### 7.3 焦点管理
-
-```javascript
-// frontend/src/composables/useFocusTrap.js
-import { ref, watch, onMounted } from 'vue'
-
-export function useFocusTrap(containerRef) {
-  const focusableElements = ref([])
-  const firstElement = ref(null)
-  const lastElement = ref(null)
-
-  function updateFocusableElements() {
-    if (!containerRef.value) return
-
-    const selector = [
-      'a[href]',
-      'button:not([disabled])',
-      'textarea:not([disabled])',
-      'input:not([disabled])',
-      'select:not([disabled])',
-      '[tabindex]:not([tabindex="-1"])'
-    ].join(', ')
-
-    focusableElements.value = Array.from(
-      containerRef.value.querySelectorAll(selector)
-    )
-
-    firstElement.value = focusableElements.value[0]
-    lastElement.value = focusableElements.value[focusableElements.value.length - 1]
-  }
-
-  function handleKeydown(e) {
-    if (e.key !== 'Tab') return
-
-    if (e.shiftKey) {
-      // Shift + Tab
-      if (document.activeElement === firstElement.value) {
-        e.preventDefault()
-        lastElement.value?.focus()
-      }
-    } else {
-      // Tab
-      if (document.activeElement === lastElement.value) {
-        e.preventDefault()
-        firstElement.value?.focus()
-      }
-    }
-  }
-
-  onMounted(() => {
-    updateFocusableElements()
-    containerRef.value?.addEventListener('keydown', handleKeydown)
-  })
-
-  return {
-    focusableElements,
-    updateFocusableElements
-  }
-}
-```
-
----
-
-### 阶段八：测试与优化（Testing）⏱️ 1周
-
-#### 8.1 视觉回归测试
-
-使用工具: Percy或Chromatic
-
-```bash
-npm install -D @percy/cli @percly/playwright
-```
-
-```javascript
-// e2e/visual-regs.spec.js
-import { test, expect } from '@playwright/test'
-
-test('股票列表视觉回归', async ({ page }) => {
-  await page.goto('http://localhost:5173')
-  await page.waitForSelector('.stock-list')
-
-  // 截图并与基线对比
-  await expect(page).toHaveScreenshot('stock-list.png')
-})
-```
-
-#### 8.2 性能测试
-
-```javascript
-// e2e/performance.spec.js
-import { test, expect } from '@playwright/test'
-
-test('页面加载性能', async ({ page }) => {
-  const startTime = Date.now()
-
-  await page.goto('http://localhost:5173')
-
-  // 等待页面完全加载
-  await page.waitForLoadState('networkidle')
-
-  const loadTime = Date.now() - startTime
-
-  // 首屏加载时间应小于2秒
-  expect(loadTime).toBeLessThan(2000)
-
-  // Web Vitals检查
-  const metrics = await page.evaluate(() => {
-    return new Promise((resolve) => {
-      new PerformanceObserver((list) => {
-        const entries = list.getEntries()
-        const lcp = entries.find(entry => entry.entryType === 'largest-contentful-paint')
-        resolve({ lcp: lcp?.renderTime || 0 })
-      }).observe({ entryTypes: ['largest-contentful-paint'] })
-    })
-  })
-
-  // LCP应小于2.5秒
-  expect(metrics.lcp).toBeLessThan(2500)
-})
-```
-
-#### 8.3 可访问性测试
-
-```javascript
-// e2e/accessibility.spec.js
-import { test, expect } from '@playwright/test'
-import AxeBuilder from '@axe-core/playwright'
-
-test('可访问性检查', async ({ page }) => {
-  await page.goto('http://localhost:5173')
-
-  const accessibilityScanResults = await new AxeBuilder({ page })
-    .include('.stock-list')
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
-    .analyze()
-
-  expect(accessibilityScanResults.violations).toEqual([])
-})
-```
-
----
-
-## 📦 实施路线图
-
-### 总时间: 10周
-
-```
-Week 1-2:  阶段一 - 设计系统重构
-           ├─ 建立设计令牌系统
-           ├─ 配置Tailwind CSS（可选）
-           └─ 统一组件库主题
-
-Week 3-4:  阶段二 - 信息架构重构 + 阶段三（第1周）
-           ├─ 扁平化导航结构
-           ├─ 页面布局重组
-           └─ 组件拆分
-
-Week 5-6:  阶段三 - 视觉设计优化
-           ├─ 颜色可访问性
-           ├─ 卡片式设计
-           ├─ 数据可视化
-           └─ 深色模式
-
-Week 7:    阶段四 - 交互体验提升
-           ├─ 加载状态
-           ├─ 过渡动画
-           ├─ 微交互
-           └─ 虚拟滚动
-
-Week 8:    阶段五 - 性能优化
-           ├─ 数据更新优化
-           ├─ 图表懒加载
-           ├─ 防抖节流
-           └─ 代码分割
-
-Week 9:    阶段六 - 响应式与适配
-           ├─ 断点系统
-           ├─ 弹性布局
-           └─ 窗口监听
-
-Week 10:   阶段七 - 可访问性改进 + 阶段八 - 测试
-           ├─ 键盘导航
-           ├─ ARIA标签
-           ├─ 焦点管理
-           └─ 全面测试
-```
-
----
-
-## 🎨 设计规范示例
-
-### 组件库结构
-
-```
-frontend/src/components/
-├── base/                    # 基础组件
-│   ├── BaseButton.vue
-│   ├── BaseCard.vue
-│   ├── BaseInput.vue
-│   ├── BaseModal.vue
-│   ├── BaseTable.vue
-│   └── SkeletonLoader.vue
-├── layout/                  # 布局组件
-│   ├── AppHeader.vue
-│   ├── AppSidebar.vue
-│   ├── AppFooter.vue
-│   └── InfoPanel.vue
-├── stock/                   # 股票相关
-│   ├── StockList.vue
-│   ├── StockCard.vue
-│   ├── StockDetailPanel.vue
-│   ├── KLineChart.vue
-│   └── index.vue
-├── market/                  # 市场相关
-│   ├── NewsList.vue
-│   ├── RankTable.vue
-│   └── ...
-└── shared/                  # 共享组件
-    ├── SearchBar.vue
-    ├── FilterBar.vue
-    └── Tabs.vue
-```
-
----
-
-## 📊 成功指标
-
-### 定量指标
-- [ ] 首屏加载时间 < 2秒
-- [ ] 交互响应时间 < 100ms
-- [ ] Lighthouse性能分数 > 90
-- [ ] 可访问性评分 > 95
-- [ ] 代码重复率降低 30%
-- [ ] 组件平均行数 < 300行
-
-### 定性指标
-- [ ] 视觉风格统一
-- [ ] 信息层次清晰
-- [ ] 交互反馈及时
-- [ ] 学习曲线降低
-- [ ] 用户满意度提升
-
----
-
-## 🚀 下一步行动
-
-1. **评审本计划** - 与团队讨论确认改造方向
-2. **创建设计系统仓库** - 独立管理设计令牌和基础组件
-3. **设置Storybook** - 组件文档和展示
-4. **建立Figma设计系统** - 设计与开发同步
-5. **开始阶段一实施** - 设计令牌系统搭建
-
----
-
-## 📝 附录
-
-### A. 参考资源
-
-- **shadcn/ui**: https://ui.shadcn.com/
-- **Naive UI**: https://www.naiveui.com/
-- **OKX官网**: https://www.okx.com/
-- **Web无障碍指南**: https://www.w3.org/WAI/WCAG21/quickref/
-- **Vue性能优化**: https://vuejs.org/guide/best-practices/performance.html
-
-### B. 工具推荐
-
-- **设计**: Figma, Sketch
-- **原型**: Figma, Adobe XD
-- **图标**: Iconify, Lucide Icons
-- **颜色**: Coolors, Adobe Color
-- **测试**: Playwright, Vitest
-- **性能**: Lighthouse, WebPageTest
-- **可访问性**: axe DevTools, WAVE
-
-### C. 迁移检查清单
-
-#### 阶段一检查清单
-- [ ] 创建design-tokens.css
-- [ ] 定义所有颜色变量
-- [ ] 定义所有间距变量
-- [ ] 定义字体系统
-- [ ] 替换硬编码颜色
-- [ ] 配置Naive UI主题
-- [ ] 创建基础Button组件
-- [ ] 创建基础Card组件
-
-#### 阶段二检查清单
-- [ ] 重组导航菜单
-- [ ] 创建三栏布局
-- [ ] 拆分stock.vue组件
-- [ ] 创建StockList组件
-- [ ] 创建StockCard组件
-- [ ] 创建StockDetailPanel组件
-
-#### 阶段三检查清单
-- [ ] 实现涨跌图标辅助
-- [ ] 添加色盲友好模式
-- [ ] 创建卡片样式
-- [ ] 定制ECharts主题
-- [ ] 优化深色主题
-- [ ] 测试颜色对比度
-
-#### 阶段四检查清单
-- [ ] 创建骨架屏组件
-- [ ] 添加页面过渡动画
-- [ ] 实现按钮涟漪效果
-- [ ] 添加加载状态
-- [ ] 实现虚拟滚动
-
-#### 阶段五检查清单
-- [ ] 优化数据更新逻辑
-- [ ] 实现图表懒加载
-- [ ] 添加防抖节流
-- [ ] 配置代码分割
-- [ ] 性能测试
-
-#### 阶段六检查清单
-- [ ] 定义断点系统
-- [ ] 实现弹性网格
-- [ ] 添加窗口监听
-- [ ] 响应式测试
-
-#### 阶段七检查清单
-- [ ] 实现键盘导航
-- [ ] 添加ARIA标签
-- [ ] 实现焦点陷阱
-- [ ] 可访问性测试
-
-#### 阶段八检查清单
-- [ ] 设置视觉回归测试
-- [ ] 性能测试
-- [ ] 可访问性自动化测试
-- [ ] 用户验收测试
-
----
-
-**文档版本**: v1.0
-**创建日期**: 2025-01-17
-**最后更新**: 2025-01-17
-**作者**: Claude AI
-**项目**: Lumos Stock UI改造计划
-
----
-
-## 💡 关键设计原则总结
-
-1. **一致性优先** - 统一的设计语言和组件
-2. **性能为王** - 快速响应和流畅体验
-3. **可访问性必备** - 所有人都能使用
-4. **渐进增强** - 基础功能到高级特性
-5. **数据驱动** - 股票数据清晰展示
-6. **专业可信** - 交易所级别的设计质量
-7. **响应式设计** - 适配各种屏幕尺寸
-8. **持续迭代** - 小步快跑，快速验证
-
----
-
-*本计划书为Lumos Stock项目的UI/UX改造提供全面的技术路线和实施方案。建议分阶段执行，每个阶段完成后进行评估和调整。*
+*文档版本: v1.0*
+*最后更新: 2025-01-17*
