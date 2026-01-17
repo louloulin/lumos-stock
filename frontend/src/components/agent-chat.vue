@@ -89,40 +89,67 @@ const allowToolTip = ref(true);
 const chatSenderRef = ref(null);
 const selectOptions = ref([]);
 const selectValue = ref("default");
+
+// 修复: 跟踪当前正在生成的消息索引
+const currentGeneratingIndex = ref(-1);
+
 onBeforeUnmount(() => {
   EventsOff("agent-message")
+  currentGeneratingIndex.value = -1;
 })
+
 EventsOn("agent-message", (data) => {
-  console.log(data)
-  if(data['role']==="assistant"){
+  console.log('agent-message event:', data)
+
+  if(data['role'] === "assistant"){
     loading.value = false;
-    const lastIndex = 0;
+
+    // 修复 1: 使用动态索引而不是硬编码
+    const lastIndex = currentGeneratingIndex.value;
+
+    // 修复 2: 添加边界检查
+    if (lastIndex < 0 || lastIndex >= chatList.value.length) {
+      console.error('Invalid message index:', lastIndex, 'chatList length:', chatList.value.length);
+      return;
+    }
+
     const lastItem = chatList.value[lastIndex];
 
-    // 创建新对象以触发Vue响应式更新
-    const updatedItem = { ...lastItem };
-
+    // 修复 3: 直接修改对象属性以保持响应式
     if (data['reasoning_content']){
-      updatedItem.reasoning += data['reasoning_content'];
+      lastItem.reasoning += data['reasoning_content'];
     }
     if (data['content']){
-      updatedItem.content += data['content'];
+      lastItem.content += data['content'];
     }
     if(data['tool_calls']){
-      for (const tool of  data['tool_calls']) {
+      for (const tool of data['tool_calls']) {
           console.log(tool.id, tool.type, tool.function.name, tool.function.arguments);
-        updatedItem.reasoning += "\n```"+tool.function.name+"\n" +
-            "参数："+ (tool.function.arguments?tool.function.arguments:"无")+
+        lastItem.reasoning += "\n```"+tool.function.name+"\n" +
+            "参数："+ (tool.function.arguments ? tool.function.arguments : "无")+
             "\n```\n";
       }
     }
 
-    // 替换整个对象以触发响应式更新
-    chatList.value[lastIndex] = updatedItem;
+    // 修复 4: 强制触发响应式更新 (重新赋值数组)
+    chatList.value = [...chatList.value];
   }
-  if(data['response_meta']&&data['response_meta'].finish_reason==="stop"){
+
+  // 修复 5: 更完善的结束检测
+  const finishReason = data['response_meta']?.finish_reason;
+  if (finishReason === "stop" || finishReason === "length") {
+    console.log('Stream finished:', finishReason);
     isStreamLoad.value = false;
     loading.value = false;
+    currentGeneratingIndex.value = -1;  // 重置索引
+  }
+
+  // 修复 6: 检测是否有错误
+  if (data['error']) {
+    console.error('Stream error:', data['error']);
+    isStreamLoad.value = false;
+    loading.value = false;
+    currentGeneratingIndex.value = -1;
   }
 })
 onBeforeMount(() => {
@@ -199,6 +226,7 @@ const onStop = function () {
     fetchCancel.value.controller.close();
     loading.value = false;
     isStreamLoad.value = false;
+    currentGeneratingIndex.value = -1;  // 修复 8: 停止时重置索引
   }
 };
 
@@ -207,27 +235,52 @@ const inputEnter = function () {
     return;
   }
   if (!inputValue.value) return;
-  const params = {
+
+  // 添加用户消息
+  const userMessage = {
     avatar: 'https://tdesign.gtimg.com/site/avatar.jpg',
     name: '宇宙无敌大韭菜',
-    datetime: new Date().toDateString(),
+    datetime: new Date().toISOString(),
     content: inputValue.value,
     role: 'user',
+    reasoning: '',
   };
-  chatList.value.unshift(params);
-  // 空消息占位
-  const params2 = {
-    avatar:  h(NImage, { src: icon.value, height: '48px', width: '48px'}),
+  chatList.value.unshift(userMessage);
+
+  // 添加 AI 空消息占位符
+  const aiMessage = {
+    avatar: h(NImage, { src: icon.value, height: '48px', width: '48px'}),
     name: 'Go-Stock AI',
-    datetime: new Date().toDateString(),
+    datetime: new Date().toISOString(),
     content: '',
     reasoning: '',
     role: 'assistant',
   };
-  chatList.value.unshift(params2);
+  chatList.value.unshift(aiMessage);
+
+  // 修复 7: 记录当前正在生成的消息索引 (最新添加的 AI 消息在索引 0)
+  currentGeneratingIndex.value = 0;
+
   loading.value = true;
   isStreamLoad.value = true;
-  ChatWithAgent(inputValue.value,selectValue.value,0)
+
+  // 保存输入内容并清空输入框
+  const question = inputValue.value;
+  inputValue.value = '';
+
+  // 调用 ChatWithAgent (添加错误处理)
+  ChatWithAgent(question, selectValue.value, 0).catch((err) => {
+    console.error('ChatWithAgent error:', err);
+    isStreamLoad.value = false;
+    loading.value = false;
+    currentGeneratingIndex.value = -1;
+
+    // 显示错误消息
+    if (currentGeneratingIndex.value >= 0 && currentGeneratingIndex.value < chatList.value.length) {
+      chatList.value[currentGeneratingIndex.value].content = '抱歉，发生了错误，请重试。';
+      chatList.value = [...chatList.value];
+    }
+  });
 };
 </script>
 <style lang="less">
